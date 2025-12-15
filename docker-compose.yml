@@ -57,6 +57,14 @@ services:
       - db
       - redis
 
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - web
+
 volumes:
   postgres_data:
   static_volume:

@@ -15,13 +15,16 @@ class AppointmentSerializer(serializers.ModelSerializer):
     jalali_datetime_display = serializers.ReadOnlyField()
     customer_name = serializers.CharField(source='customer.full_name', read_only=True)
     stylist_name = serializers.CharField(source='stylist.full_name', read_only=True)
-    service_name = serializers.CharField(source='service.__str__', read_only=True)
+    service_name = serializers.CharField(source='service.custom_name', read_only=True)
+    salon_name = serializers.CharField(source='stylist.salon.name', read_only=True)
+    salon_address = serializers.CharField(source='stylist.salon.address', read_only=True)
     
     class Meta:
         model = Appointment
         fields = [
             'id', 'customer', 'customer_name', 'stylist', 'stylist_name',
-            'service', 'service_name', 'appointment_date', 'appointment_time',
+            'service', 'service_name', 'salon_name', 'salon_address',
+            'appointment_date', 'appointment_time',
             'jalali_date', 'jalali_datetime_display', 'status',
             'customer_notes', 'admin_notes', 'created_at', 'updated_at'
         ]

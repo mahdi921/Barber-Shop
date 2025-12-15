@@ -10,6 +10,8 @@ from django.views.decorators.http import require_http_methods
 from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.decorators import method_decorator
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .models import CustomUser, SalonManagerProfile, StylistProfile
@@ -340,6 +342,51 @@ def api_pending_managers(request):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
+@ensure_csrf_cookie
+def api_get_csrf_token(request):
+    """
+    Ensure CSRF cookie is set.
+    GET /accounts/api/csrf/
+    """
+    return Response({'detail': 'CSRF cookie set'})
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def api_login(request):
+    """
+    JSON-based login for React Frontend.
+    """
+    username = request.data.get('phone_number') or request.data.get('username')
+    password = request.data.get('password')
+
+    if not username or not password:
+        return Response({'detail': 'شماره تلفن و رمز عبور الزامی است'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = authenticate(request, username=username, password=password)
+
+    if user is not None:
+        login(request, user)
+        serializer = CustomUserSerializer(user)
+        return Response({
+            'detail': 'ورود موفقیت‌آمیز بود',
+            'user': serializer.data
+        }, status=status.HTTP_200_OK)
+    else:
+        return Response({'detail': 'شماره تلفن یا رمز عبور اشتباه است'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def api_logout(request):
+    """
+    JSON-based logout for React Frontend.
+    """
+    logout(request)
+    return Response({'detail': 'خروج موفقیت‌آمیز بود'}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def api_current_user(request):
     """
@@ -348,4 +395,63 @@ def api_current_user(request):
     GET /accounts/api/me/
     """
     serializer = CustomUserSerializer(request.user)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    data = serializer.data
+    
+    # Enrich data with specific profile fields for easier frontend routing
+    user = request.user
+    data['is_approved'] = False
+    data['is_temporary'] = False
+    data['profile_completed'] = False
+
+    if user.user_type == 'salon_manager' and hasattr(user, 'manager_profile'):
+        data['is_approved'] = user.manager_profile.is_approved
+    elif user.user_type == 'stylist' and hasattr(user, 'stylist_profile'):
+        data['is_temporary'] = user.stylist_profile.is_temporary
+        data['profile_completed'] = not user.stylist_profile.is_temporary
+        
+    return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsSiteAdmin])
+def api_admin_stats(request):
+    """
+    Get dashboard statistics for Site Admin.
+    """
+    from apps.salons.models import Salon
+    from apps.appointments.models import Appointment
+    
+    today = timezone.now().date()
+    
+    stats = {
+        'total_users': CustomUser.objects.count(),
+        'total_customers': CustomUser.objects.filter(user_type='customer').count(),
+        'total_stylists': CustomUser.objects.filter(user_type='stylist').count(),
+        'total_managers': CustomUser.objects.filter(user_type='salon_manager').count(),
+        'pending_managers': SalonManagerProfile.objects.filter(is_approved=False).count(),
+        'total_salons': Salon.objects.count(),
+        'active_salons': Salon.objects.filter(manager__is_approved=True).count(),
+        'total_appointments': Appointment.objects.count(),
+        'today_appointments': Appointment.objects.filter(appointment_date=today).count(),
+    }
+    return Response(stats, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsSiteAdmin])
+def api_admin_users(request):
+    """
+    List all users for Site Admin management.
+    Supports filtering by user_type.
+    """
+    user_type = request.GET.get('user_type')
+    queryset = CustomUser.objects.all().order_by('-date_joined')
+    
+    if user_type:
+        queryset = queryset.filter(user_type=user_type)
+        
+    # Use pagination
+    paginator = generics.ListAPIView.pagination_class()
+    paginated_users = paginator.paginate_queryset(queryset, request)
+    serializer = CustomUserSerializer(paginated_users, many=True)
+    return paginator.get_paginated_response(serializer.data)

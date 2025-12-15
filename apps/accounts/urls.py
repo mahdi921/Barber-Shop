@@ -24,9 +24,14 @@ urlpatterns = [
     
     # API endpoints
     path('api/register/customer/', views.api_register_customer, name='api_register_customer'),
-    path('api/register/manager/', views.api_register_manager, name='api_register_manager'),
+    path('api/register/manager/', views.api_register_manager, name='api_register_manager'),    # API URLs
+    path('api/csrf/', views.api_get_csrf_token, name='api_csrf'),
+    path('api/login/', views.api_login, name='api_login'),
+    path('api/logout/', views.api_logout, name='api_logout'),
     path('api/stylist/complete-profile/', views.api_stylist_complete_profile, name='api_stylist_complete_profile'),
     path('api/approve-manager/<int:manager_id>/', views.api_approve_manager, name='api_approve_manager'),
     path('api/pending-managers/', views.api_pending_managers, name='api_pending_managers'),
+    path('api/admin/stats/', views.api_admin_stats, name='api_admin_stats'),
+    path('api/admin/users/', views.api_admin_users, name='api_admin_users'),
     path('api/me/', views.api_current_user, name='api_current_user'),
 ]
