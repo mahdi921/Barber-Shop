@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}نوبت‌های من | سیستم رزرو آنلاین{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="mb-4">نوبت‌های من</h2>
+
+        {% if appointments %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>آرایشگر</th>
+                        <th>خدمت</th>
+                        <th>تاریخ</th>
+                        <th>ساعت</th>
+                        <th>وضعیت</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                    <tr>
+                        <td>{{ appointment.stylist.full_name }}</td>
+                        <td>{{ appointment.service.custom_name|default:appointment.service.get_service_type_display }}
+                        </td>
+                        <td>{{ appointment.jalali_date }}</td>
+                        <td>{{ appointment.time_slot }}</td>
+                        <td>
+                            {% if appointment.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">در انتظار</span>
+                            {% elif appointment.status == 'confirmed' %}
+                            <span class="badge bg-success">تأیید شده</span>
+                            {% elif appointment.status == 'cancelled' %}
+                            <span class="badge bg-danger">لغو شده</span>
+                            {% elif appointment.status == 'completed' %}
+                            <span class="badge bg-secondary">انجام شده</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if appointment.status == 'pending' or appointment.status == 'confirmed' %}
+                            <button class="btn btn-sm btn-danger cancel-btn" data-id="{{ appointment.id }}">لغو</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            هیچ نوبتی یافت نشد. <a href="{% url 'salons:salon_list' %}" class="alert-link">رزرو نوبت جدید</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Cancel Confirmation Modal would go here -->
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const cancelBtns = document.querySelectorAll('.cancel-btn');
+
+        cancelBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                if (confirm('آیا از لغو این نوبت اطمینان دارید؟')) {
+                    const id = this.dataset.id;
+                    fetch(`/appointments/api/cancel/${id}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.message) {
+                                alert(data.message);
+                                location.reload();
+                            } else {
+                                alert(data.error || 'خطا در لغو نوبت');
+                            }
+                        });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

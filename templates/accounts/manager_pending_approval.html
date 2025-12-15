@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}در انتظار تأیید{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 text-center">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h4><i class="fas fa-clock"></i> در انتظار تأیید مدیریت</h4>
+            </div>
+            <div class="card-body py-5">
+                <h5 class="card-title mb-4">حساب کاربری شما ایجاد شده است</h5>
+                <p class="card-text lead">
+                    مدیر گرامی، ثبت‌نام سالن <strong>{{ manager.salon_name }}</strong> با موفقیت انجام شد.
+                </p>
+                <p class="card-text">
+                    حساب کاربری شما در حال بررسی توسط مدیر سایت است. پس از تأیید، می‌توانید به پنل مدیریت سالن دسترسی
+                    داشته باشید.
+                </p>
+                <hr>
+                <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary">خروج از حساب</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

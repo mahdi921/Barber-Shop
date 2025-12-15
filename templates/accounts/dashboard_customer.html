@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}داشبورد مشتری{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                {% if user.customer_profile.selfie_photo %}
+                <img src="{{ user.customer_profile.selfie_photo.url }}" class="img-fluid rounded-circle mb-3"
+                    style="width: 150px; height: 150px; object-fit: cover;">
+                {% endif %}
+                <h5>{{ user.customer_profile.first_name }} {{ user.customer_profile.last_name }}</h5>
+                <p class="text-muted">مشتری</p>
+                <a href="#" class="btn btn-sm btn-outline-primary mb-2">ویرایش پروفایل</a>
+            </div>
+        </div>
+        <div class="list-group">
+            <a href="#" class="list-group-item list-group-item-action active">داشبورد</a>
+            <a href="{% url 'appointments:appointment_list' %}" class="list-group-item list-group-item-action">نوبت‌های
+                من</a>
+            <a href="#" class="list-group-item list-group-item-action disabled">نظرات من (به زودی)</a>
+            <a href="{% url 'accounts:logout' %}" class="list-group-item list-group-item-action text-danger">خروج</a>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <h2 class="mb-4">خوش آمدید، {{ user.customer_profile.first_name }}!</h2>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>نوبت‌های آینده</span>
+                <a href="{% url 'salons:salon_list' %}" class="btn btn-sm btn-primary">رزرو نوبت جدید</a>
+            </div>
+            <div class="card-body">
+                <p class="text-muted text-center">هیچ نوبت آینده‌ای ندارید.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                تاریخچه نوبت‌ها
+            </div>
+            <div class="card-body">
+                <p class="text-muted text-center">تاریخچه‌ای موجود نیست.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

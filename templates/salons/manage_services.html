@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}مدیریت خدمات{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                افزودن خدمت جدید
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors.0 }}
+                    </div>
+                    {% endif %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ field.label }}</label>
+                        {{ field }} <!-- Customize class if needed -->
+                        {% if field.errors %}
+                        <div class="text-danger small">{{ field.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-success w-100">افزودن خدمت</button>
+                </form>
+            </div>
+        </div>
+        <a href="{% url 'accounts:manager_dashboard' %}" class="btn btn-secondary mt-3 w-100">بازگشت به داشبورد</a>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                لیست خدمات
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>نام</th>
+                            <th>نوع</th>
+                            <th>قیمت</th>
+                            <th>مدت</th>
+                            <th>آرایشگر</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in services %}
+                        <tr>
+                            <td>{{ service.custom_name|default:service.get_service_type_display }}</td>
+                            <td>{{ service.get_service_type_display }}</td>
+                            <td>{{ service.price }} تومان</td>
+                            <td>{{ service.duration_minutes }} دقیقه</td>
+                            <td>{{ service.stylist.full_name|default:"همه" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">هیچ خدمتی ثبت نشده است.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

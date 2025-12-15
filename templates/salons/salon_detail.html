@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}{{ salon.name }} | جزئیات سالن{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            {% if salon.photo %}
+            <img src="{{ salon.photo.url }}" class="card-img-top" alt="{{ salon.name }}">
+            {% endif %}
+            <div class="card-body">
+                <h3 class="card-title">{{ salon.name }}</h3>
+                <p class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ salon.address }}</p>
+                <div class="mb-3">
+                    <span
+                        class="badge {% if salon.gender_type == 'male' %}bg-primary{% else %}bg-danger{% endif %} p-2">
+                        {% if salon.gender_type == 'male' %}مردانه{% else %}زنانه{% endif %}
+                    </span>
+                    <span class="badge bg-warning text-dark p-2">
+                        <i class="fas fa-star"></i> {{ salon.average_rating|default:"-" }} ({{ salon.total_ratings }}
+                        نظر)
+                    </span>
+                </div>
+                <h5>ساعات کاری</h5>
+                <ul class="list-unstyled">
+                    {% for wh in salon.working_hours.all %}
+                    <li>{{ wh.get_day_of_week_display }}: {{ wh.start_time }} - {{ wh.end_time }}</li>
+                    {% empty %}
+                    <li class="text-muted">ساعات کاری ثبت نشده است</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <ul class="nav nav-tabs mb-4" id="salonTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="stylists-tab" data-bs-toggle="tab" href="#stylists"
+                    role="tab">آرایشگران</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="services-tab" data-bs-toggle="tab" href="#services" role="tab">خدمات</a>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="salonTabContent">
+            <div class="tab-pane fade show active" id="stylists" role="tabpanel">
+                <div class="row">
+                    {% for stylist in stylists %}
+                    <div class="col-md-6 mb-3">
+                        <a href="{% url 'appointments:booking_page' %}?stylist_id={{ stylist.id }}"
+                            class="text-decoration-none text-dark">
+                            <div class="card h-100 shadow-sm hover-shadow transition">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ stylist.full_name }}</h5>
+                                    <p class="text-muted mb-0">متخصص</p>
+                                    <small class="text-primary">برای رزرو نوبت کلیک کنید</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% empty %}
+                    <div class="col">
+                        <p class="text-muted">هیچ آرایشگر فعالی یافت نشد.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="services" role="tabpanel">
+                <div class="list-group">
+                    {% for service in salon.services.all %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">{{ service.custom_name }}</h6>
+                            <small class="text-muted">{{ service.duration_minutes }} دقیقه</small>
+                        </div>
+                        <span class="badge bg-success rounded-pill">{{ service.price }} تومان</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted p-3">خدماتی ثبت نشده است.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

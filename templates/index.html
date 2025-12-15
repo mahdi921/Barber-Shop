@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}خانه | سیستم رزرو آنلاین سالن{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="col-md-8 text-center">
+        <h1 class="display-4 mb-4">به سیستم رزرو آنلاین سالن خوش آمدید</h1>
+        <p class="lead mb-5">نوبت آرایشگاه خود را رزرو کنید یا سالن خود را مدیریت نمایید.</p>
+
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{% url 'salons:salon_list' %}" class="btn btn-primary btn-lg mx-2">
+                <i class="fas fa-cut"></i> مشاهده سالن‌ها
+            </a>
+
+            {% if not user.is_authenticated %}
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-lg mx-2">
+                <i class="fas fa-sign-in-alt"></i> ورود / ثبت‌نام
+            </a>
+            {% else %}
+            <a href="{% url 'accounts:dashboard' %}" class="btn btn-success btn-lg mx-2">
+                <i class="fas fa-user"></i> داشبورد من
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

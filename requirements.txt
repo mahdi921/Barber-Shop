@@ -1,0 +1,14 @@
+Django>5.2,<6
+djangorestframework
+psycopg[binary]
+django-redis
+redis
+Pillow
+django-simple-captcha
+jdatetime
+django-jalali
+gunicorn
+python-decouple
+django-cors-headers
+celery
+django-filter

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}لیست سالن‌ها | سیستم رزرو آنلاین{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1>سالن‌های آرایشی تأیید شده</h1>
+    </div>
+</div>
+
+<div class="row">
+    {% for salon in salons %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            {% if salon.photo %}
+            <img src="{{ salon.photo.url }}" class="card-img-top" alt="{{ salon.name }}"
+                style="height: 200px; object-fit: cover;">
+            {% else %}
+            <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center"
+                style="height: 200px;">
+                <span>بدون عکس</span>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ salon.name }}</h5>
+                <p class="card-text text-muted">
+                    <i class="fas fa-map-marker-alt"></i> {{ salon.address }}
+                </p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge {% if salon.gender_type == 'male' %}bg-primary{% else %}bg-danger{% endif %}">
+                        {% if salon.gender_type == 'male' %}مردانه{% else %}زنانه{% endif %}
+                    </span>
+                    <span class="text-warning">
+                        <i class="fas fa-star"></i> {{ salon.average_rating|default:"-" }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-top-0">
+                <a href="{% url 'salons:salon_detail' salon.id %}" class="btn btn-outline-primary w-100">مشاهده
+                    جزئیات</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col text-center py-5">
+        <p class="lead text-muted">هیچ سالنی یافت نشد.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}ورود به سیستم{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white text-center">
+                <h3>ورود به سیستم</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.phone_number.id_for_label}}" class="form-label">{{ form.phone_number.label
+                            }}</label>
+                        {{ form.phone_number }}
+                        {% if form.phone_number.errors %}
+                        <div class="text-danger">{{ form.phone_number.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.password.id_for_label }}" class="form-label">{{ form.password.label
+                            }}</label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                        <div class="text-danger">{{ form.password.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.captcha.id_for_label }}" class="form-label">{{ form.captcha.label }}</label>
+                        {{ form.captcha }}
+                        {% if form.captcha.errors %}
+                        <div class="text-danger">{{ form.captcha.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">ورود</button>
+                    </div>
+                </form>
+
+                <div class="mt-4 text-center">
+                    <p><strong>حساب کاربری ندارید؟</strong></p>
+                    <a href="{% url 'accounts:register_customer' %}" class="btn btn-outline-primary">ثبت‌نام مشتری</a>
+                    <a href="{% url 'accounts:register_manager' %}" class="btn btn-outline-secondary">ثبت‌نام مدیر
+                        سالن</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

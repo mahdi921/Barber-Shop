@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}ثبت‌نام مشتری{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white text-center">
+                <h3>ثبت‌نام مشتری</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.phone_number.id_for_label }}" class="form-label">{{ form.phone_number.label
+                            }}</label>
+                        {{ form.phone_number }}
+                        {% if form.phone_number.errors %}
+                        <div class="text-danger">{{ form.phone_number.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">مثال: 09123456789</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label
+                            }}</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                        <div class="text-danger">{{ form.first_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label
+                            }}</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                        <div class="text-danger">{{ form.last_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.gender.id_for_label }}" class="form-label">{{ form.gender.label }}</label>
+                        {{ form.gender }}
+                        {% if form.gender.errors %}
+                        <div class="text-danger">{{ form.gender.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">{{
+                            form.date_of_birth.label }}</label>
+                        {{ form.date_of_birth }}
+                        {% if form.date_of_birth.errors %}
+                        <div class="text-danger">{{ form.date_of_birth.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.selfie_photo.id_for_label }}" class="form-label">{{ form.selfie_photo.label
+                            }}</label>
+                        {{ form.selfie_photo }}
+                        {% if form.selfie_photo.errors %}
+                        <div class="text-danger">{{ form.selfie_photo.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.password1.id_for_label }}" class="form-label">{{ form.password1.label
+                            }}</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                        <div class="text-danger">{{ form.password1.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.password2.id_for_label }}" class="form-label">{{ form.password2.label
+                            }}</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                        <div class="text-danger">{{ form.password2.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.captcha.id_for_label }}" class="form-label">{{ form.captcha.label }}</label>
+                        {{ form.captcha }}
+                        {% if form.captcha.errors %}
+                        <div class="text-danger">{{ form.captcha.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">ثبت‌نام</button>
+                    </div>
+                </form>
+
+                <div class="mt-3 text-center">
+                    <p>قبلاً ثبت‌نام کرده‌اید؟ <a href="{% url 'accounts:login' %}">ورود</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

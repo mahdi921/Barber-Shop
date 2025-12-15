@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}مدیریت آرایشگران{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                افزودن آرایشگر جدید
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <div class="text-danger small">{{ field.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <div class="alert alert-info small">
+                        حساب با رمز عبور موقت ایجاد می‌شود و آرایشگر در اولین ورود ملزم به تکمیل پروفایل است.
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">ایجاد حساب</button>
+                </form>
+            </div>
+        </div>
+        <a href="{% url 'accounts:manager_dashboard' %}" class="btn btn-secondary mt-3 w-100">بازگشت به داشبورد</a>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                لیست آرایشگران
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>نام</th>
+                            <th>تلفن</th>
+                            <th>وضعیت</th>
+                            <th>عملکرد امروز</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stylist in stylists %}
+                        <tr>
+                            <td>{{ stylist.full_name }}</td>
+                            <td>{{ stylist.user.username }}</td>
+                            <td>
+                                {% if stylist.is_temporary %}
+                                <span class="badge bg-warning text-dark">تکمیل نشده</span>
+                                {% else %}
+                                <span class="badge bg-success">فعال</span>
+                                {% endif %}
+                            </td>
+                            <td>-</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">هیچ آرایشگری ثبت نشده است.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

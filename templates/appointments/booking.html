@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}رزرو نوبت | سیستم رزرو آنلاین{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">رزرو نوبت جدید</h4>
+            </div>
+            <div class="card-body">
+                <form id="bookingForm">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="stylistSelect" class="form-label">انتخاب آرایشگر</label>
+                        <select class="form-select" id="stylistSelect" required>
+                            {% if preselected_stylist %}
+                            <option value="{{ preselected_stylist.id }}" selected>{{ preselected_stylist.full_name }}
+                            </option>
+                            {% else %}
+                            <option value="">لطفاً ابتدا سالن و آرایشگر را انتخاب کنید</option>
+                            {% endif %}
+                        </select>
+                        {% if not preselected_stylist %}
+                        <div class="form-text text-danger">لطفاً از صفحه لیست سالن‌ها اقدام به رزرو کنید.</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="serviceSelect" class="form-label">انتخاب خدمت</label>
+                        <select class="form-select" id="serviceSelect" required>
+                            <option value="">لطفاً یک خدمت را انتخاب کنید</option>
+                            {% if stylist_services %}
+                            {% for service in stylist_services %}
+                            <option value="{{ service.id }}">
+                                {{ service.custom_name|default:service.get_service_type_display }}
+                                ({{ service.duration_minutes }} دقیقه - {{ service.price }} تومان)
+                            </option>
+                            {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="dateInput" class="form-label">تاریخ نوبت (شمسی)</label>
+                        <input type="text" class="form-control" id="dateInput" placeholder="مثال: 1402/09/25" required>
+                        <div class="form-text">فرمت: YYYY/MM/DD</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="timeSlotSelect" class="form-label">ساعت نوبت</label>
+                        <select class="form-select" id="timeSlotSelect" required disabled>
+                            <option value="">ابتدا تاریخ را وارد کنید</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notesInput" class="form-label">توضیحات (اختیاری)</label>
+                        <textarea class="form-control" id="notesInput" rows="3"></textarea>
+                    </div>
+
+                    <div id="messageBox" class="alert d-none"></div>
+
+                    <button type="submit" class="btn btn-primary w-100" id="submitBtn">ثبت نوبت</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const stylistSelect = document.getElementById('stylistSelect');
+        const serviceSelect = document.getElementById('serviceSelect');
+        const dateInput = document.getElementById('dateInput');
+        const timeSlotSelect = document.getElementById('timeSlotSelect');
+        const bookingForm = document.getElementById('bookingForm');
+        const messageBox = document.getElementById('messageBox');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Disable stylist select if preselected
+        {% if preselected_stylist %}
+        stylistSelect.disabled = true;
+        {% endif %}
+
+        dateInput.addEventListener('change', function () {
+            const date = this.value;
+            const stylistId = stylistSelect.value;
+            if (date && stylistId) {
+                fetchSlots(stylistId, date);
+            }
+        });
+
+        stylistSelect.addEventListener('change', function () {
+            const date = dateInput.value;
+            const stylistId = this.value;
+            if (date && stylistId) {
+                fetchSlots(stylistId, date);
+            }
+        });
+
+        function fetchSlots(stylistId, jalaliDate) {
+            timeSlotSelect.disabled = true;
+            timeSlotSelect.innerHTML = '<option>در حال بارگذاری...</option>';
+
+            fetch(`/appointments/api/availability/?stylist_id=${stylistId}&jalali_date=${jalaliDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    timeSlotSelect.innerHTML = '<option value="">انتخاب ساعت</option>';
+                    if (data.available_slots && data.available_slots.length > 0) {
+                        data.available_slots.forEach(slot => {
+                            const option = document.createElement('option');
+                            option.value = slot;
+                            option.textContent = slot;
+                            timeSlotSelect.appendChild(option);
+                        });
+                        timeSlotSelect.disabled = false;
+                    } else {
+                        timeSlotSelect.innerHTML = '<option>نوبت خالی وجود ندارد</option>';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    timeSlotSelect.innerHTML = '<option>خطا در دریافت نوبت‌ها</option>';
+                });
+        }
+
+        bookingForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const data = {
+                stylist_id: stylistSelect.value, // JS can read disabled inputs
+                service_id: serviceSelect.value,
+                jalali_date: dateInput.value,
+                time_slot: timeSlotSelect.value,
+                customer_notes: document.getElementById('notesInput').value
+            };
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'در حال ثبت...';
+            messageBox.className = 'alert d-none';
+
+            fetch('/appointments/api/book/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json().then(data => ({ status: response.status, body: data })))
+                .then(result => {
+                    messageBox.classList.remove('d-none');
+                    if (result.status === 201) {
+                        messageBox.classList.add('alert-success');
+                        messageBox.textContent = 'نوبت با موفقیت ثبت شد! انتقال به داشبورد...';
+                        setTimeout(() => {
+                            window.location.href = "{% url 'accounts:customer_dashboard' %}";
+                        }, 2000);
+                    } else {
+                        messageBox.classList.add('alert-danger');
+                        messageBox.textContent = result.body.detail || result.body.error || 'خطا در ثبت نوبت';
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'ثبت نوبت';
+                    }
+                })
+                .catch(err => {
+                    messageBox.classList.remove('d-none');
+                    messageBox.classList.add('alert-danger');
+                    messageBox.textContent = 'خطای ارتباط با سرور';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'ثبت نوبت';
+                });
+        });
+    });
+</script>
+{% endblock %}

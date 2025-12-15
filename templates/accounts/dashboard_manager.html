@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}داشبورد مدیریت سالن{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                {% if user.manager_profile.salon_photo %}
+                <img src="{{ user.manager_profile.salon_photo.url }}" class="img-fluid rounded-circle mb-3"
+                    style="width: 150px; height: 150px; object-fit: cover;">
+                {% endif %}
+                <h5>{{ user.manager_profile.salon_name }}</h5>
+                <p class="text-muted">مدیر سالن</p>
+                <a href="#" class="btn btn-sm btn-outline-primary mb-2">ویرایش اطلاعات</a>
+            </div>
+        </div>
+        <div class="list-group">
+            <a href="#" class="list-group-item list-group-item-action active">داشبورد</a>
+            <a href="{% url 'appointments:appointment_list' %}" class="list-group-item list-group-item-action">مدیریت
+                نوبت‌ها</a>
+            <a href="{% url 'salons:manage_stylists' %}" class="list-group-item list-group-item-action">مدیریت
+                آرایشگران</a>
+            <a href="{% url 'salons:manage_services' %}" class="list-group-item list-group-item-action">مدیریت خدمات</a>
+            <a href="#" class="list-group-item list-group-item-action disabled">ساعات کاری (به زودی)</a>
+            <a href="{% url 'accounts:logout' %}" class="list-group-item list-group-item-action text-danger">خروج</a>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <h2 class="mb-4">خوش آمدید!</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">نوبت‌های امروز</h5>
+                        <p class="card-text display-4">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title">درآمد امروز</h5>
+                        <p class="card-text display-4">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h5 class="card-title">آرایشگران فعال</h5>
+                        <p class="card-text display-4">{{ user.manager_profile.salon.stylists.count }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                آخرین نوبت‌ها
+            </div>
+            <div class="card-body">
+                <p class="text-muted text-center">هنوز نوبتی ثبت نشده است.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
