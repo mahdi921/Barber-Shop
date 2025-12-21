@@ -367,7 +367,238 @@ POSTGRES_PASSWORD=<strong-db-password>
 CELERY_BROKER_URL=redis://redis:6379/0
 ```
 
+## 🔗 Make.com Webhook Integration
+
+The system includes a production-ready webhook integration that sends appointment notifications to Make.com (formerly Integromat) for downstream automation workflows.
+
+### Features
+
+- **Dual Webhook Events**: Sends webhooks both when appointment is created (`pending`) and when confirmed
+- **Reliable Delivery**: Asynchronous Celery tasks with exponential backoff retry (max 5 attempts)
+- **HMAC Security**: Signed payloads with SHA256 signature for verification
+- **Idempotency**: Each webhook has a unique key to prevent duplicate processing
+- **Full Audit Trail**: All delivery attempts tracked in database with response codes
+- **Admin Interface**: View, retry, and resend webhooks via Django admin
+- **Fallback Mode**: If no webhook URL configured, payloads stored as 'pending' for later processing
+
+### Configuration
+
+Add these environment variables to your `.env` file:
+
+```bash
+# Make.com Webhook Integration
+MAKE_WEBHOOK_URL=https://hook.make.com/your-webhook-id-here
+MAKE_WEBHOOK_SECRET=your-secret-key-for-hmac-signature
+```
+
+**Note**: If `MAKE_WEBHOOK_URL` is left empty, webhooks will be queued but marked as 'pending' in the database for manual processing later.
+
+### Webhook Payload
+
+Each webhook POST includes:
+
+**Headers:**
+- `Content-Type: application/json`
+- `Idempotency-Key: appointment:{id}:{event_type}` - Unique key for deduplication
+- `X-Make-Signature: sha256={hex_digest}` - HMAC signature for verification
+
+**Body Example:**
+
+```json
+{
+  "appointment_id": "123e4567-e89b-12d3-a456-426614174000",
+  "event_type": "created",
+  "created_at": "2025-12-21T08:18:00Z",
+  "customer": {
+    "id": 42,
+    "phone": "0912***5678",
+    "first_name": "علی",
+    "last_name": "محمدی"
+  },
+  "salon": {
+    "id": 5,
+    "name": "آرایشگاه مدرن",
+    "address": "تهران، خیابان ولیعصر"
+  },
+  "stylist": {
+    "id": 12,
+    "name": "رضا احمدی"
+  },
+  "services": [{
+    "id": 7,
+    "name": "کوتاهی مو مردانه",
+    "price": "150000",
+    "duration_minutes": 30
+  }],
+  "total_price": "150000",
+  "total_duration_minutes": 30,
+  "appointment_start": "2025-12-22T14:00:00+03:30",
+  "appointment_end": "2025-12-22T14:30:00+03:30",
+  "status": "pending",
+  "metadata": {
+    "is_first_time_customer": false,
+    "source": "web",
+    "persian_date": "1404/10/01"
+  }
+}
+```
+
+Full example payload: [`docs/webhook_payload_example.json`](docs/webhook_payload_example.json)
+
+### Signature Verification
+
+To verify the webhook signature in Make.com:
+
+```javascript
+// In Make.com HTTP module
+const crypto = require('crypto');
+const bodyString = JSON.stringify(request.body);
+const secret = 'your-secret-key';
+const signature = crypto
+  .createHmac('sha256', secret)
+  .update(bodyString)
+  .digest('hex');
+
+const receivedSig = request.headers['x-make-signature'].replace('sha256=', '');
+
+if (signature === receivedSig) {
+  // Signature valid, process webhook
+} else {
+  // Invalid signature, reject
+}
+```
+
+### Retry Policy
+
+- **Transient Errors (5xx)**: Automatic retry with exponential backoff
+  - Retry 1: 60s delay
+  - Retry 2: 120s delay
+  - Retry 3: 240s delay
+  - Retry 4: 480s delay
+  - Retry 5: 960s delay (max)
+  
+- **Permanent Errors (4xx)**: No retry, marked as 'failed'
+
+- **Network Errors**: Retry with exponential backoff
+
+### Admin Interface
+
+Access webhook deliveries in Django admin:
+
+1. Navigate to **Webhook Deliveries** in admin panel
+2. View all delivery attempts with status, response codes, and payloads
+3. **Retry Failed**: Select failed deliveries and use "Retry Failed Webhooks" action
+4. **Resend**: Select any delivery and use "Resend Webhooks" action
+
+### Management Commands
+
+**Retry a specific failed webhook:**
+
+```bash
+docker-compose exec backend python manage.py retry_webhook <delivery_id>
+```
+
+**Resend webhook for an appointment:**
+
+```bash
+# Resend 'created' event
+docker-compose exec backend python manage.py resend_appointment_webhook <appointment_id>
+
+# Resend 'confirmed' event
+docker-compose exec backend python manage.py resend_appointment_webhook <appointment_id> --event-type confirmed
+```
+
+### Local Testing
+
+**1. Start the mock webhook server:**
+
+```bash
+# Install Flask first
+pip install flask
+
+# Run mock server
+python scripts/mock_make_webhook.py
+```
+
+The mock server will listen on `http://localhost:8001/webhook` and display received webhooks in the terminal.
+
+**2. Configure local webhook URL:**
+
+```bash
+# In .env file
+MAKE_WEBHOOK_URL=http://localhost:8001/webhook
+MAKE_WEBHOOK_SECRET=test-secret-key
+```
+
+**3. Create a test appointment:**
+
+```bash
+# Via Django shell
+docker-compose exec backend python manage.py shell
+
+>>> from apps.appointments.models import Appointment
+>>> # Create appointment and it will trigger webhook automatically
+```
+
+**4. Verify delivery:**
+
+Check the mock server terminal output to see the received webhook with full payload details.
+
+**Manual curl test:**
+
+```bash
+# Compute signature and send test webhook
+BODY='{"test":"data"}'
+SECRET="test-secret-key"
+SIGNATURE=$(echo -n "$BODY" | openssl dgst -sha256 -hmac "$SECRET" | cut -d' ' -f2)
+
+curl -X POST http://localhost:8001/webhook \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: test-key-123" \
+  -H "X-Make-Signature: sha256=$SIGNATURE" \
+  -d "$BODY"
+```
+
+### Troubleshooting
+
+**Webhook not sending:**
+
+1. Check Celery worker is running: `docker-compose logs worker`
+2. Verify `MAKE_WEBHOOK_URL` is set in `.env`
+3. Check Redis connection: `docker-compose exec redis redis-cli ping`
+4. View webhook delivery records in Django admin
+
+**Signature verification failing:**
+
+1. Ensure `MAKE_WEBHOOK_SECRET` matches on both sides
+2. Verify you're computing HMAC on the raw request body (not parsed JSON)
+3. Check signature header format: `sha256=<hex_digest>`
+
+**Webhooks marked as 'failed':**
+
+1. Check Make.com webhook endpoint is accessible
+2. Review error message in WebhookDelivery admin
+3. Retry manually via admin action or management command
+
+### Database Models
+
+**WebhookDelivery fields:**
+- `appointment` - ForeignKey to Appointment
+- `event_type` - 'created' or 'confirmed'
+- `payload` - JSONField with full webhook payload
+- `status` - queued, sending, sent, failed, pending
+- `idempotency_key` - Unique key
+- `attempts_count` - Number of delivery attempts
+- `response_code` - HTTP response code
+- `response_body` - Response from Make.com
+- `error_message` - Error details if failed
+
+**Appointment webhook fields:**
+- `webhook_created_sent` - Boolean, if 'created' webhook sent
+- `webhook_confirmed_sent` - Boolean, if 'confirmed' webhook sent
+
 ## 📱 SMS Integration (Optional)
+
 
 The system includes SMS stubs for future integration:
 

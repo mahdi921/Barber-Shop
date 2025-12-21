@@ -12,3 +12,7 @@ python-decouple
 django-cors-headers
 celery
 django-filter
+requests
+responses
+
+

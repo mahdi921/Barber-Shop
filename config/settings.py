@@ -188,6 +188,14 @@ CELERY_TIMEZONE = TIME_ZONE
 SMS_API_KEY = config('SMS_API_KEY', default='')
 SMS_PROVIDER = 'stub'  # Change to 'kavenegar', 'ghasedak', etc.
 
+# Make.com Webhook Configuration
+MAKE_WEBHOOK_URL = config('MAKE_WEBHOOK_URL', default='')
+MAKE_WEBHOOK_SECRET = config('MAKE_WEBHOOK_SECRET', default='')
+MAKE_SIGNATURE_HEADER = 'X-Make-Signature'
+MAKE_WEBHOOK_MAX_RETRIES = 5
+MAKE_WEBHOOK_TIMEOUT = 10  # seconds
+
+
 # Logging Configuration
 LOGGING = {
     'version': 1,
