@@ -1,18 +1,7 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { chatApi } from '../../api/chat';
 import Button from '../ui/Button';
-
-interface QueueEntry {
-    session_key: string;
-    reason: string;
-    priority: number;
-    position: number;
-    joined_at: string;
-    waiting_time: number;
-    user_name?: string;
-    last_message?: string;
-}
 
 interface ChatQueuePanelProps {
     onJoinChat?: (sessionKey: string) => void;
@@ -111,7 +100,7 @@ const ChatQueuePanel: React.FC<ChatQueuePanelProps> = ({ onJoinChat }) => {
                         <p className="text-sm mt-1">همه کاربران پاسخگری شده‌اند 🎉</p>
                     </div>
                 ) : (
-                    queueList.map((entry) => {
+                    queueList.map((entry: any) => {
                         const priorityBadge = getPriorityBadge(entry.priority);
 
                         return (

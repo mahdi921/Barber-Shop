@@ -25,18 +25,24 @@ const FAQList: React.FC<FAQListProps> = ({ faqs, onSelectFAQ, onEscalate }) => {
 
             {/* FAQ List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                {faqs.map((faq) => (
-                    <button
-                        key={faq.id}
-                        onClick={() => onSelectFAQ(faq)}
-                        className="w-full text-right p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors duration-200 group"
-                    >
-                        <div className="flex items-start gap-3">
-                            <span className="text-blue-600 mt-1 text-xl group-hover:scale-110 transition-transform">▸</span>
-                            <span className="text-gray-900 font-medium">{faq.question}</span>
-                        </div>
-                    </button>
-                ))}
+                {Array.isArray(faqs) && faqs.length > 0 ? (
+                    faqs.map((faq) => (
+                        <button
+                            key={faq.id}
+                            onClick={() => onSelectFAQ(faq)}
+                            className="w-full text-right p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors duration-200 group"
+                        >
+                            <div className="flex items-start gap-3">
+                                <span className="text-blue-600 mt-1 text-xl group-hover:scale-110 transition-transform">▸</span>
+                                <span className="text-gray-900 font-medium">{faq.question}</span>
+                            </div>
+                        </button>
+                    ))
+                ) : (
+                    <div className="text-center py-8 text-gray-500">
+                        <p>در حال بارگذاری سوالات...</p>
+                    </div>
+                )}
             </div>
 
             {/* Escalation Button */}

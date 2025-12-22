@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { appointmentApi } from '../../api/appointments';
@@ -50,7 +49,18 @@ const CustomerDashboard: React.FC = () => {
 
             <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                 <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">نوبت‌های من</h3>
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-lg leading-6 font-medium text-gray-900">نوبت‌های من</h3>
+                        <Link
+                            to="/"
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                        >
+                            <svg className="ml-2 -mr-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            رزرو نوبت جدید
+                        </Link>
+                    </div>
                 </div>
 
                 {appointments.length === 0 ? (

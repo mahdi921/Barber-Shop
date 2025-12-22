@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import FAQList, { FAQ } from './FAQList';
+import FAQList, { type FAQ } from './FAQList';
 import FAQAnswer from './FAQAnswer';
 import { chatApi } from '../../api/chat';
 
@@ -35,7 +35,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
     // Load FAQs on mount
     useEffect(() => {
-        chatApi.getInitialFAQs().then(setFAQs).catch(console.error);
+        chatApi.getInitialFAQs()
+            .then((data) => setFaqs(Array.isArray(data) ? data : []))
+            .catch((error) => {
+                console.error('Failed to load FAQs:', error);
+                setFaqs([]); // Ensure faqs is always an array
+            });
     }, []);
 
     // Auto-switch to chat mode when messages arrive or status changes

@@ -9,6 +9,10 @@ export default defineConfig({
     host: true,
     port: 5173,
     proxy: {
+      '/chat/api': {
+        target: 'http://web:8000',
+        changeOrigin: true,
+      },
       '/accounts/api': {
         target: 'http://web:8000',
         changeOrigin: true,
