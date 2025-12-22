@@ -7,26 +7,25 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 
 // Validation schema
-const customerRegisterSchema = z.object({
+const managerRegisterSchema = z.object({
     phone_number: z.string()
         .min(11, 'شماره تلفن باید ۱۱ رقم باشد')
         .max(11, 'شماره تلفن باید ۱۱ رقم باشد')
         .regex(/^09[0-9]{9}$/, 'شماره تلفن باید با ۰۹ شروع شود'),
     password: z.string().min(8, 'رمز عبور باید حداقل ۸ کاراکتر باشد'),
     confirm_password: z.string(),
-    first_name: z.string().min(2, 'نام باید حداقل ۲ کاراکتر باشد'),
-    last_name: z.string().min(2, 'نام خانوادگی باید حداقل ۲ کاراکتر باشد'),
-    gender: z.enum(['male', 'female'], { required_error: 'انتخاب جنسیت الزامی است' }),
-    date_of_birth: z.string().min(1, 'تاریخ تولد الزامی است'),
-    selfie_photo: z.any(),
+    salon_name: z.string().min(2, 'نام سالن باید حداقل ۲ کاراکتر باشد'),
+    salon_address: z.string().min(10, 'آدرس باید حداقل ۱۰ کاراکتر باشد'),
+    salon_gender_type: z.enum(['male', 'female'], { required_error: 'انتخاب نوع سالن الزامی است' }),
+    salon_photo: z.any(),
 }).refine((data) => data.password === data.confirm_password, {
     message: 'رمز عبور و تکرار آن باید یکسان باشند',
     path: ['confirm_password'],
 });
 
-type CustomerRegisterFormData = z.infer<typeof customerRegisterSchema>;
+type ManagerRegisterFormData = z.infer<typeof managerRegisterSchema>;
 
-const CustomerRegister: React.FC = () => {
+const ManagerRegister: React.FC = () => {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -36,11 +35,11 @@ const CustomerRegister: React.FC = () => {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<CustomerRegisterFormData>({
-        resolver: zodResolver(customerRegisterSchema),
+    } = useForm<ManagerRegisterFormData>({
+        resolver: zodResolver(managerRegisterSchema),
     });
 
-    const onSubmit = async (data: CustomerRegisterFormData) => {
+    const onSubmit = async (data: ManagerRegisterFormData) => {
         setIsSubmitting(true);
         setError(null);
 
@@ -48,16 +47,15 @@ const CustomerRegister: React.FC = () => {
             const formData = new FormData();
             formData.append('phone_number', data.phone_number);
             formData.append('password', data.password);
-            formData.append('first_name', data.first_name);
-            formData.append('last_name', data.last_name);
-            formData.append('gender', data.gender);
-            formData.append('date_of_birth', data.date_of_birth);
+            formData.append('salon_name', data.salon_name);
+            formData.append('salon_address', data.salon_address);
+            formData.append('salon_gender_type', data.salon_gender_type);
 
             if (selectedFile) {
-                formData.append('selfie_photo', selectedFile);
+                formData.append('salon_photo', selectedFile);
             }
 
-            const response = await fetch('http://localhost:8000/accounts/api/register/customer/', {
+            const response = await fetch('http://localhost:8000/accounts/api/register/manager/', {
                 method: 'POST',
                 body: formData,
             });
@@ -65,7 +63,7 @@ const CustomerRegister: React.FC = () => {
             const result = await response.json();
 
             if (response.ok) {
-                alert('ثبت‌نام با موفقیت انجام شد! اکنون می‌توانید وارد شوید.');
+                alert('ثبت‌نام با موفقیت انجام شد! حساب شما در انتظار تأیید مدیر سایت است.');
                 navigate('/login');
             } else {
                 setError(result.error || 'خطا در ثبت‌نام. لطفاً دوباره تلاش کنید.');
@@ -87,7 +85,7 @@ const CustomerRegister: React.FC = () => {
         <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                    ثبت‌نام مشتری
+                    ثبت‌نام مدیر سالن
                 </h2>
                 <p className="mt-2 text-center text-sm text-gray-600">
                     از قبل حساب کاربری دارید؟{' '}
@@ -95,6 +93,11 @@ const CustomerRegister: React.FC = () => {
                         ورود به حساب
                     </Link>
                 </p>
+                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <p className="text-sm text-yellow-800 text-center">
+                        ⚠️ حساب شما پس از ثبت‌نام نیاز به تأیید مدیر سایت دارد
+                    </p>
+                </div>
             </div>
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -111,61 +114,60 @@ const CustomerRegister: React.FC = () => {
                         />
 
                         <Input
-                            label="نام"
+                            label="نام سالن"
                             type="text"
-                            placeholder="علی"
-                            {...register('first_name')}
-                            error={errors.first_name?.message}
-                        />
-
-                        <Input
-                            label="نام خانوادگی"
-                            type="text"
-                            placeholder="محمدی"
-                            {...register('last_name')}
-                            error={errors.last_name?.message}
+                            placeholder="آرایشگاه مدرن"
+                            {...register('salon_name')}
+                            error={errors.salon_name?.message}
                         />
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                جنسیت
+                                آدرس سالن
+                            </label>
+                            <textarea
+                                {...register('salon_address')}
+                                rows={3}
+                                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                placeholder="تهران، خیابان ولیعصر، پلاک ۱۲۳"
+                            />
+                            {errors.salon_address && (
+                                <p className="mt-1 text-sm text-red-600">{errors.salon_address.message}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                نوع سالن
                             </label>
                             <div className="flex gap-4">
                                 <label className="flex items-center">
                                     <input
                                         type="radio"
                                         value="male"
-                                        {...register('gender')}
+                                        {...register('salon_gender_type')}
                                         className="ml-2"
                                     />
-                                    مرد
+                                    مردانه
                                 </label>
                                 <label className="flex items-center">
                                     <input
                                         type="radio"
                                         value="female"
-                                        {...register('gender')}
+                                        {...register('salon_gender_type')}
                                         className="ml-2"
                                     />
-                                    زن
+                                    زنانه
                                 </label>
                             </div>
-                            {errors.gender && (
-                                <p className="mt-1 text-sm text-red-600">{errors.gender.message}</p>
+                            {errors.salon_gender_type && (
+                                <p className="mt-1 text-sm text-red-600">{errors.salon_gender_type.message}</p>
                             )}
                         </div>
 
-                        <Input
-                            label="تاریخ تولد (میلادی)"
-                            type="date"
-                            {...register('date_of_birth')}
-                            error={errors.date_of_birth?.message}
-                            dir="ltr"
-                        />
-
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                عکس سلفی
+                                عکس سالن
                             </label>
                             <input
                                 type="file"
@@ -226,4 +228,4 @@ const CustomerRegister: React.FC = () => {
     );
 };
 
-export default CustomerRegister;
+export default ManagerRegister;
