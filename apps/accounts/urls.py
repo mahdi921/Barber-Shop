@@ -33,5 +33,6 @@ urlpatterns = [
     path('api/pending-managers/', views.api_pending_managers, name='api_pending_managers'),
     path('api/admin/stats/', views.api_admin_stats, name='api_admin_stats'),
     path('api/admin/users/', views.api_admin_users, name='api_admin_users'),
+    path('api/admin/users/<int:user_id>/', views.api_admin_user_detail, name='api_admin_user_detail'),
     path('api/me/', views.api_current_user, name='api_current_user'),
 ]

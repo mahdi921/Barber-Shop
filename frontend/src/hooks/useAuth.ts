@@ -60,10 +60,12 @@ export function useAuth() {
         user,
         isLoading,
         isAuthenticated: !!user,
-        isError,
+        isUserError: isError, // Renamed to avoid confusion
         login: loginMutation.mutate,
         logout: logoutMutation.mutate,
         isLoggingIn: loginMutation.isPending,
         isLoggingOut: logoutMutation.isPending,
+        loginError: loginMutation.error,
+        isLoginError: loginMutation.isError,
     };
 }

@@ -3,9 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { appointmentApi } from '../../api/appointments';
 import type { Appointment } from '../../api/appointments';
 import { useAuth } from '../../hooks/useAuth';
+// Using standard button for simplicity as Button component import path wasn't verified in this file previously
 
 const StylistDashboard: React.FC = () => {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
 
     // Reuse the same API as it adapts to user_type
     const { data, isLoading, error } = useQuery({
@@ -20,10 +21,21 @@ const StylistDashboard: React.FC = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">
-                پنل آرایشگر
-                {user?.stylist_profile && <span className="text-gray-500 font-normal text-lg mr-2">({user.stylist_profile.full_name})</span>}
-            </h1>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">
+                    پنل آرایشگر
+                    {user?.stylist_profile && <span className="text-gray-500 font-normal text-lg mr-2">({user.stylist_profile.full_name})</span>}
+                </h1>
+
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => logout()}
+                        className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 h-8"
+                    >
+                        خروج
+                    </button>
+                </div>
+            </div>
 
             <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                 <div className="px-4 py-5 sm:px-6 border-b border-gray-200">

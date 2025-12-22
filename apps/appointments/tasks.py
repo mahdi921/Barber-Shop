@@ -128,6 +128,7 @@ def build_webhook_payload(appointment, event_type):
             'phone': mask_phone(appointment.customer.user.phone_number),
             'first_name': appointment.customer.first_name,
             'last_name': appointment.customer.last_name,
+            'telegram_chat_id': appointment.customer.telegram_chat_id,  # For Telegram notifications
         },
         'salon': {
             'id': appointment.stylist.salon.id,

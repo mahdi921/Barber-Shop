@@ -14,3 +14,44 @@ body {
   color: #1f2937;
   /* gray-800 */
 }
+
+/* Persian DatePicker Styles */
+.rmdp-container {
+  direction: rtl !important;
+}
+
+.rmdp-calendar {
+  font-family: 'Vazirmatn', sans-serif !important;
+}
+
+.rmdp-day-picker {
+  direction: rtl !important;
+}
+
+.rmdp-header-values {
+  direction: rtl !important;
+}
+
+.rmdp-week-day {
+  color: #6366f1 !important;
+  font-weight: 600;
+}
+
+.rmdp-day.rmdp-selected span {
+  background-color: #4f46e5 !important;
+  color: white !important;
+}
+
+.rmdp-day.rmdp-today span {
+  background-color: #e0e7ff !important;
+  color: #4f46e5 !important;
+}
+
+.rmdp-day:hover span {
+  background-color: #e0e7ff !important;
+}
+
+.rmdp-arrow-container:hover {
+  background-color: #e0e7ff !important;
+  box-shadow: 0 0 3px #8b5cf6;
+}

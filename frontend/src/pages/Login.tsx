@@ -16,7 +16,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const Login: React.FC = () => {
-    const { login, isLoggingIn, isError } = useAuth();
+    const { login, isLoggingIn, isLoginError } = useAuth();
 
     const {
         register,
@@ -58,7 +58,7 @@ const Login: React.FC = () => {
                             error={errors.password?.message}
                         />
 
-                        {isError && (
+                        {isLoginError && (
                             <div className="rounded-md bg-red-50 p-4">
                                 <div className="flex">
                                     <div className="ml-3">

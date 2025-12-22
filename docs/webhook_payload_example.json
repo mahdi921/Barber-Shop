@@ -6,7 +6,8 @@
         "id": 42,
         "phone": "0912***5678",
         "first_name": "علی",
-        "last_name": "محمدی"
+        "last_name": "محمدی",
+        "telegram_chat_id": "123456789"
     },
     "salon": {
         "id": 5,

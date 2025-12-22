@@ -20,6 +20,7 @@ urlpatterns = [
     path('salons/', include('apps.salons.urls')),
     path('appointments/', include('apps.appointments.urls')),
     path('ratings/', include('apps.ratings.urls')),
+    path('chat/', include('apps.chat.urls')),  # Chat APIs
     
     # API URLs (if using DRF browsable API)
     path('api-auth/', include('rest_framework.urls')),

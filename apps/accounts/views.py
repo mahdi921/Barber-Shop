@@ -386,30 +386,51 @@ def api_logout(request):
     return Response({'detail': 'خروج موفقیت‌آمیز بود'}, status=status.HTTP_200_OK)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def api_current_user(request):
     """
-    Get current logged-in user details.
+    Get current logged-in user details or update profile.
     
     GET /accounts/api/me/
+    PATCH /accounts/api/me/ (multipart/form-data for photos)
     """
-    serializer = CustomUserSerializer(request.user)
-    data = serializer.data
-    
-    # Enrich data with specific profile fields for easier frontend routing
-    user = request.user
-    data['is_approved'] = False
-    data['is_temporary'] = False
-    data['profile_completed'] = False
-
-    if user.user_type == 'salon_manager' and hasattr(user, 'manager_profile'):
-        data['is_approved'] = user.manager_profile.is_approved
-    elif user.user_type == 'stylist' and hasattr(user, 'stylist_profile'):
-        data['is_temporary'] = user.stylist_profile.is_temporary
-        data['profile_completed'] = not user.stylist_profile.is_temporary
+    if request.method == 'GET':
+        serializer = CustomUserSerializer(request.user)
+        data = serializer.data
         
-    return Response(data, status=status.HTTP_200_OK)
+        # Enrich data with specific profile fields for easier frontend routing
+        user = request.user
+        data['is_approved'] = False
+        data['is_temporary'] = False
+        data['profile_completed'] = False
+
+        if user.user_type == 'salon_manager' and hasattr(user, 'manager_profile'):
+            data['is_approved'] = user.manager_profile.is_approved
+        elif user.user_type == 'stylist' and hasattr(user, 'stylist_profile'):
+            data['is_temporary'] = user.stylist_profile.is_temporary
+            data['profile_completed'] = not user.stylist_profile.is_temporary
+            
+        return Response(data, status=status.HTTP_200_OK)
+
+    elif request.method == 'PATCH':
+        user = request.user
+        
+        if user.user_type == 'customer' and hasattr(user, 'customer_profile'):
+            serializer = CustomerProfileSerializer(user.customer_profile, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(CustomUserSerializer(user).data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        elif user.user_type == 'salon_manager' and hasattr(user, 'manager_profile'):
+            serializer = SalonManagerProfileSerializer(user.manager_profile, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(CustomUserSerializer(user).data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        return Response({'error': 'Cannot update this profile type'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
@@ -455,3 +476,30 @@ def api_admin_users(request):
     paginated_users = paginator.paginate_queryset(queryset, request)
     serializer = CustomUserSerializer(paginated_users, many=True)
     return paginator.get_paginated_response(serializer.data)
+
+
+@api_view(['GET', 'PATCH', 'DELETE'])
+@permission_classes([IsSiteAdmin])
+def api_admin_user_detail(request, user_id):
+    """
+    Manage specific user:
+    GET: Retrieve details
+    PATCH: Update (e.g. is_active)
+    DELETE: Remove user
+    """
+    user = get_object_or_404(CustomUser, id=user_id)
+
+    if request.method == 'GET':
+        serializer = CustomUserSerializer(user)
+        return Response(serializer.data)
+
+    elif request.method == 'PATCH':
+        serializer = CustomUserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

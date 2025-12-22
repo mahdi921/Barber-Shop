@@ -84,7 +84,7 @@ class CustomerRegistrationSerializer(serializers.Serializer):
     
     first_name = serializers.CharField(max_length=50)
     last_name = serializers.CharField(max_length=50)
-    selfie_photo = serializers.ImageField()
+    selfie_photo = serializers.ImageField(required=False)
     gender = serializers.ChoiceField(choices=CustomerProfile.GENDER_CHOICES)
     date_of_birth = serializers.DateField()
     
@@ -92,6 +92,10 @@ class CustomerRegistrationSerializer(serializers.Serializer):
         """Validate password confirmation."""
         if data['password'] != data['password_confirm']:
             raise serializers.ValidationError("رمز عبور و تکرار آن یکسان نیستند")
+            
+        if CustomUser.objects.filter(phone_number=data['phone_number']).exists():
+             raise serializers.ValidationError({"phone_number": "این شماره تلفن قبلاً ثبت شده است"})
+            
         return data
     
     def create(self, validated_data):
@@ -103,10 +107,12 @@ class CustomerRegistrationSerializer(serializers.Serializer):
         profile_data = {
             'first_name': validated_data.pop('first_name'),
             'last_name': validated_data.pop('last_name'),
-            'selfie_photo': validated_data.pop('selfie_photo'),
             'gender': validated_data.pop('gender'),
             'date_of_birth': validated_data.pop('date_of_birth'),
         }
+        
+        if 'selfie_photo' in validated_data:
+            profile_data['selfie_photo'] = validated_data.pop('selfie_photo')
         
         # Create user
         user = CustomUser.objects.create_user(
@@ -128,7 +134,7 @@ class SalonManagerRegistrationSerializer(serializers.Serializer):
     password_confirm = serializers.CharField(write_only=True, min_length=8)
     
     salon_name = serializers.CharField(max_length=100)
-    salon_photo = serializers.ImageField()
+    salon_photo = serializers.ImageField(required=False)
     salon_address = serializers.CharField()
     salon_gender_type = serializers.ChoiceField(choices=SalonManagerProfile.SALON_GENDER_CHOICES)
     
@@ -136,6 +142,10 @@ class SalonManagerRegistrationSerializer(serializers.Serializer):
         """Validate password confirmation."""
         if data['password'] != data['password_confirm']:
             raise serializers.ValidationError("رمز عبور و تکرار آن یکسان نیستند")
+
+        if CustomUser.objects.filter(phone_number=data['phone_number']).exists():
+             raise serializers.ValidationError({"phone_number": "این شماره تلفن قبلاً ثبت شده است"})
+
         return data
     
     def create(self, validated_data):
@@ -146,10 +156,12 @@ class SalonManagerRegistrationSerializer(serializers.Serializer):
         # Extract profile data
         profile_data = {
             'salon_name': validated_data.pop('salon_name'),
-            'salon_photo': validated_data.pop('salon_photo'),
             'salon_address': validated_data.pop('salon_address'),
             'salon_gender_type': validated_data.pop('salon_gender_type'),
         }
+        
+        if 'salon_photo' in validated_data:
+            profile_data['salon_photo'] = validated_data.pop('salon_photo')
         
         # Create user
         user = CustomUser.objects.create_user(

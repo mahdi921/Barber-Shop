@@ -138,6 +138,16 @@ class CustomerProfile(TimeStampedModel):
     
     date_of_birth = models.DateField(verbose_name="تاریخ تولد (میلادی)")
     
+    # Telegram integration
+    telegram_chat_id = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        unique=True,
+        verbose_name="شناسه چت تلگرام",
+        help_text="Chat ID برای ارسال اعلان‌های تلگرام"
+    )
+    
     class Meta:
         verbose_name = "پروفایل مشتری"
         verbose_name_plural = "پروفایل‌های مشتری"

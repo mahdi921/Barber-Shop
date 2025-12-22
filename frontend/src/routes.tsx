@@ -8,6 +8,8 @@ import Home from './pages/Home';
 import SalonDetail from './pages/SalonDetail';
 import CustomerDashboard from './pages/dashboard/CustomerDashboard';
 import StylistDashboard from './pages/dashboard/StylistDashboard';
+import ManagerDashboard from './pages/dashboard/ManagerDashboard';
+import SalonDetailManagement from './pages/dashboard/SalonDetailManagement';
 import { useAuth } from './hooks/useAuth';
 
 // Protected Route Wrapper
@@ -33,6 +35,8 @@ const AppRoutes = () => {
     return (
         <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/register/customer" element={<CustomerRegister />} />
+            <Route path="/register/manager" element={<ManagerRegister />} />
             <Route path="/" element={<Home />} />
             <Route path="/salon/:id" element={<SalonDetail />} />
 
@@ -46,6 +50,18 @@ const AppRoutes = () => {
             <Route path="/stylist-dashboard" element={
                 <ProtectedRoute allowedRoles={['stylist']}>
                     <StylistDashboard />
+                </ProtectedRoute>
+            } />
+
+            <Route path="/manager/dashboard" element={
+                <ProtectedRoute allowedRoles={['salon_manager']}>
+                    <ManagerDashboard />
+                </ProtectedRoute>
+            } />
+
+            <Route path="/manager/dashboard/salons/:salonId" element={
+                <ProtectedRoute allowedRoles={['salon_manager']}>
+                    <SalonDetailManagement />
                 </ProtectedRoute>
             } />
 

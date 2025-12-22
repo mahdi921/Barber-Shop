@@ -15,6 +15,10 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(','
 
 # Application definition
 INSTALLED_APPS = [
+    # Daphne must be first for Channels
+    'daphne',
+    
+    # Django core apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -24,10 +28,12 @@ INSTALLED_APPS = [
     
     # Third-party apps
     'rest_framework',
-    'django_filters',
     'corsheaders',
     'captcha',
     'django_jalali',
+    
+    # Channels (WebSocket support)
+    'channels',
     
     # Local apps
     'apps.core',
@@ -35,6 +41,7 @@ INSTALLED_APPS = [
     'apps.salons',
     'apps.appointments',
     'apps.ratings',
+    'apps.chat',
 ]
 
 MIDDLEWARE = [
@@ -165,8 +172,16 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+# CSRF Trusted Origins
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
 
 # CAPTCHA Settings
 CAPTCHA_FONT_SIZE = 30
@@ -224,3 +239,31 @@ LOGGING = {
         },
     },
 }
+
+# ============================================================================
+# Channels & WebSocket Configuration
+# ============================================================================
+
+ASGI_APPLICATION = 'config.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('redis', 6379)],
+        },
+    },
+}
+
+# ============================================================================
+# OpenAI & Chatbot Configuration
+# ============================================================================
+
+OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
+OPENAI_MODEL = config('OPENAI_MODEL', default='gpt-4o-mini')  # Latest model
+
+# Chat settings
+CHAT_RATE_LIMIT = config('CHAT_RATE_LIMIT', default=10, cast=int)  # messages per minute
+CHAT_AI_CONFIDENCE_THRESHOLD = config('CHAT_AI_CONFIDENCE_THRESHOLD', default=0.6, cast=float)
+CHAT_MAX_MESSAGE_LENGTH = 1000
+CHAT_SESSION_TIMEOUT = 3600  # 1 hour in seconds

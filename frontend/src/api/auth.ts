@@ -31,6 +31,13 @@ export const authApi = {
         return response.data;
     },
 
+    updateProfile: async (data: FormData) => {
+        const response = await client.patch<User>('/accounts/api/me/', data, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    },
+
     getCsrf: async () => {
         await client.get('/accounts/api/csrf/');
     }

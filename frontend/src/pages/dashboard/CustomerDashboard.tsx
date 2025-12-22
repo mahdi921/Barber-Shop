@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { appointmentApi } from '../../api/appointments';
 import type { Appointment } from '../../api/appointments';
 import Button from '../../components/ui/Button';
@@ -55,7 +57,7 @@ const CustomerDashboard: React.FC = () => {
                     <div className="p-8 text-center text-gray-500">
                         شما هیچ نوبتی ندارید.
                         <div className="mt-4">
-                            <a href="/" className="text-blue-600 hover:text-blue-500">رزرو نوبت جدید &larr;</a>
+                            <Link to="/" className="text-blue-600 hover:text-blue-500 font-medium">رزرو نوبت جدید &larr;</Link>
                         </div>
                     </div>
                 ) : (

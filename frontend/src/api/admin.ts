@@ -32,4 +32,13 @@ export const adminApi = {
         });
         return response.data;
     },
+
+    updateUser: async (userId: number, data: Partial<User>) => {
+        const response = await client.patch<User>(`/accounts/api/admin/users/${userId}/`, data);
+        return response.data;
+    },
+
+    deleteUser: async (userId: number) => {
+        await client.delete(`/accounts/api/admin/users/${userId}/`);
+    },
 };

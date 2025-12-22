@@ -13,14 +13,14 @@ const managerRegisterSchema = z.object({
         .max(11, 'شماره تلفن باید ۱۱ رقم باشد')
         .regex(/^09[0-9]{9}$/, 'شماره تلفن باید با ۰۹ شروع شود'),
     password: z.string().min(8, 'رمز عبور باید حداقل ۸ کاراکتر باشد'),
-    confirm_password: z.string(),
+    password_confirm: z.string(),
     salon_name: z.string().min(2, 'نام سالن باید حداقل ۲ کاراکتر باشد'),
     salon_address: z.string().min(10, 'آدرس باید حداقل ۱۰ کاراکتر باشد'),
-    salon_gender_type: z.enum(['male', 'female'], { required_error: 'انتخاب نوع سالن الزامی است' }),
-    salon_photo: z.any(),
-}).refine((data) => data.password === data.confirm_password, {
+    salon_gender_type: z.enum(['male', 'female'], { message: 'انتخاب نوع سالن الزامی است' }),
+    // salon_photo removed from registration
+}).refine((data) => data.password === data.password_confirm, {
     message: 'رمز عبور و تکرار آن باید یکسان باشند',
-    path: ['confirm_password'],
+    path: ['password_confirm'],
 });
 
 type ManagerRegisterFormData = z.infer<typeof managerRegisterSchema>;
@@ -29,7 +29,6 @@ const ManagerRegister: React.FC = () => {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     const {
         register,
@@ -47,13 +46,12 @@ const ManagerRegister: React.FC = () => {
             const formData = new FormData();
             formData.append('phone_number', data.phone_number);
             formData.append('password', data.password);
+            formData.append('password_confirm', data.password_confirm);
             formData.append('salon_name', data.salon_name);
             formData.append('salon_address', data.salon_address);
             formData.append('salon_gender_type', data.salon_gender_type);
-
-            if (selectedFile) {
-                formData.append('salon_photo', selectedFile);
-            }
+            formData.append('salon_address', data.salon_address);
+            formData.append('salon_gender_type', data.salon_gender_type);
 
             const response = await fetch('http://localhost:8000/accounts/api/register/manager/', {
                 method: 'POST',
@@ -66,7 +64,24 @@ const ManagerRegister: React.FC = () => {
                 alert('ثبت‌نام با موفقیت انجام شد! حساب شما در انتظار تأیید مدیر سایت است.');
                 navigate('/login');
             } else {
-                setError(result.error || 'خطا در ثبت‌نام. لطفاً دوباره تلاش کنید.');
+                // Handle field-specific errors
+                if (typeof result === 'object' && result !== null) {
+                    const errorValues = Object.values(result);
+                    if (errorValues.length > 0) {
+                        const firstError = errorValues[0];
+                        if (Array.isArray(firstError)) {
+                            setError(firstError[0]);
+                        } else if (typeof firstError === 'string') {
+                            setError(firstError);
+                        } else {
+                            setError('خطا در داده‌های ارسالی. لطفاً موارد را بررسی کنید.');
+                        }
+                    } else {
+                        setError('خطا در ثبت‌نام. لطفاً دوباره تلاش کنید.');
+                    }
+                } else {
+                    setError('خطا در ثبت‌نام. لطفاً دوباره تلاش کنید.');
+                }
             }
         } catch (err) {
             setError('خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.');
@@ -75,11 +90,7 @@ const ManagerRegister: React.FC = () => {
         }
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setSelectedFile(e.target.files[0]);
-        }
-    };
+
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -165,27 +176,7 @@ const ManagerRegister: React.FC = () => {
                             )}
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                عکس سالن
-                            </label>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleFileChange}
-                                className="block w-full text-sm text-gray-500
-                                    file:ml-4 file:py-2 file:px-4
-                                    file:rounded-md file:border-0
-                                    file:text-sm file:font-semibold
-                                    file:bg-indigo-50 file:text-indigo-700
-                                    hover:file:bg-indigo-100"
-                            />
-                            {selectedFile && (
-                                <p className="mt-2 text-sm text-gray-600">
-                                    فایل انتخاب شده: {selectedFile.name}
-                                </p>
-                            )}
-                        </div>
+
 
                         <Input
                             label="رمز عبور"
@@ -197,8 +188,8 @@ const ManagerRegister: React.FC = () => {
                         <Input
                             label="تکرار رمز عبور"
                             type="password"
-                            {...register('confirm_password')}
-                            error={errors.confirm_password?.message}
+                            {...register('password_confirm')}
+                            error={errors.password_confirm?.message}
                         />
 
                         {error && (
