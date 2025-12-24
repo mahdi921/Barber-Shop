@@ -60,7 +60,8 @@ def api_manager_salon_detail(request, salon_id):
     """
     try:
         manager_profile = request.user.manager_profile
-        salon = get_object_or_404(Salon, id=salon_id, managers=manager_profile)
+        # Salon has 'manager' FK to SalonManagerProfile, not 'managers' M2M
+        salon = get_object_or_404(Salon, id=salon_id, manager=manager_profile)
     except AttributeError:
         return Response(
             {'error': 'شما مدیر سالن نیستید'},
@@ -81,11 +82,8 @@ def api_manager_salon_detail(request, salon_id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
-        # Remove association or delete salon
-        manager_profile.salons.remove(salon)
-        # If no more managers, delete the salon
-        if salon.managers.count() == 0:
-            salon.delete()
+        # Delete salon (manager owns it via FK)
+        salon.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -101,7 +99,8 @@ def api_manager_salon_stylists(request, salon_id):
     """
     try:
         manager_profile = request.user.manager_profile
-        salon = get_object_or_404(Salon, id=salon_id, managers=manager_profile)
+        # Salon has 'manager' FK to SalonManagerProfile, not 'managers' M2M
+        salon = get_object_or_404(Salon, id=salon_id, manager=manager_profile)
     except AttributeError:
         return Response(
             {'error': 'شما مدیر سالن نیستید'},

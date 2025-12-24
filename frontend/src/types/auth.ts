@@ -6,8 +6,9 @@ export interface CustomerProfile {
     last_name: string;
     full_name: string;
     selfie_photo?: string;
-    gender: 'M' | 'F';
+    gender: 'male' | 'female';
     jalali_date_of_birth?: string;
+    telegram_chat_id?: string | null;
 }
 
 export interface SalonManagerProfile {
@@ -16,6 +17,7 @@ export interface SalonManagerProfile {
     salon_photo?: string;
     salon_address: string;
     is_approved: boolean;
+    telegram_chat_id?: string | null;
 }
 
 export interface StylistProfile {
@@ -25,6 +27,7 @@ export interface StylistProfile {
     full_name: string;
     is_temporary: boolean;
     profile_completed_at?: string;
+    telegram_chat_id?: string | null;
 }
 
 export interface User {
@@ -41,6 +44,7 @@ export interface User {
     is_approved?: boolean;
     is_temporary?: boolean;
     profile_completed?: boolean;
+    telegram_bot_username?: string;
 }
 
 export interface AuthResponse {

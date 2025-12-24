@@ -51,10 +51,15 @@ if not BOT_TOKEN:
 
 
 @sync_to_async
-def link_telegram_account(phone_number, chat_id):
+def link_telegram_account(phone_number, chat_id, user_data=None):
     """
     Link Telegram chat_id to customer account.
     
+    Args:
+        phone_number (str): User's phone number
+        chat_id (str): Telegram chat ID
+        user_data (dict): Optional dictionary with 'username', 'first_name', 'user_id'
+        
     Returns:
         tuple: (success: bool, message: str, customer_name: str or None)
     """
@@ -73,7 +78,19 @@ def link_telegram_account(phone_number, chat_id):
         
         # Link the account
         customer.telegram_chat_id = str(chat_id)
-        customer.save(update_fields=['telegram_chat_id'])
+        
+        # Update metadata if provided
+        if user_data:
+            customer.telegram_username = user_data.get('username')
+            customer.telegram_first_name = user_data.get('first_name')
+            customer.telegram_user_id = str(user_data.get('user_id'))
+            
+        customer.save(update_fields=[
+            'telegram_chat_id', 
+            'telegram_username', 
+            'telegram_first_name', 
+            'telegram_user_id'
+        ])
         
         return True, "حساب شما با موفقیت متصل شد!", customer.first_name
         
@@ -125,8 +142,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
         
+        # Prepare user data
+        user_data = {
+            'username': update.effective_user.username,
+            'first_name': update.effective_user.first_name,
+            'user_id': update.effective_user.id
+        }
+        
         # Link the account
-        success, message, customer_name = await link_telegram_account(phone_number, chat_id)
+        success, message, customer_name = await link_telegram_account(phone_number, chat_id, user_data)
         
         if success:
             await update.message.reply_text(

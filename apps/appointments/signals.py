@@ -41,26 +41,24 @@ def schedule_webhook_on_appointment_event(sender, instance, created, **kwargs):
     Uses transaction.on_commit to ensure webhook is only sent after
     successful database commit.
     """
-    from apps.appointments.tasks import deliver_appointment_webhook
     
     # Event 1: Appointment created (new record with pending status)
-    if created and instance.status == 'pending' and not instance.webhook_created_sent:
-        def enqueue_created_webhook():
-            logger.info(f"Scheduling 'created' webhook for appointment {instance.id}")
-            deliver_appointment_webhook.delay(str(instance.id), 'created')
-        
-        transaction.on_commit(enqueue_created_webhook)
+    if created and instance.status == 'pending':
+        # Send Telegram notification (if user has Telegram linked)
+        transaction.on_commit(
+            lambda: __import__('apps.chat.services.notifications', fromlist=['send_appointment_created_notification'])
+            .send_appointment_created_notification(instance)
+        )
     
     # Event 2: Appointment confirmed (status changed to 'confirmed')
     previous_status = getattr(instance, '_previous_status', None)
     
     if (not created and 
         instance.status == 'confirmed' and 
-        previous_status != 'confirmed' and 
-        not instance.webhook_confirmed_sent):
+        previous_status != 'confirmed'):
         
-        def enqueue_confirmed_webhook():
-            logger.info(f"Scheduling 'confirmed' webhook for appointment {instance.id}")
-            deliver_appointment_webhook.delay(str(instance.id), 'confirmed')
-        
-        transaction.on_commit(enqueue_confirmed_webhook)
+        # Send Telegram notification
+        transaction.on_commit(
+            lambda: __import__('apps.chat.services.notifications', fromlist=['send_appointment_confirmed_notification'])
+            .send_appointment_confirmed_notification(instance)
+        )

@@ -97,6 +97,14 @@ def get_availability(request):
     })
 
 
+from apps.chat.services.notifications import (
+    send_appointment_created_notification,
+    send_appointment_confirmed_notification,
+    send_appointment_cancelled_notification
+)
+
+# ... (rest of imports)
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsCustomer])
 def book_appointment(request):
@@ -113,6 +121,21 @@ def book_appointment(request):
     if serializer.is_valid():
         try:
             appointment = serializer.save()
+            
+            # Auto-Approve Logic
+            salon = appointment.stylist.salon
+            if salon.auto_approve_appointments:
+                appointment.status = 'confirmed'
+                appointment.save(update_fields=['status'])
+                # Send confirmed notification directly (since signal might only handle pending)
+                # But actually signal handles 'created' which is effectively pending.
+                # If we save as confirmed immediately, created signal might trigger 'pending' logic if not careful.
+                # Let's rely on explicit notification calls here or update signals.
+                # To be safe and explicit:
+                send_appointment_confirmed_notification(appointment)
+            else:
+                send_appointment_created_notification(appointment)
+
             response_serializer = AppointmentSerializer(appointment)
             return Response({
                 'message': 'نوبت با موفقیت ثبت شد',
@@ -132,8 +155,6 @@ def book_appointment(request):
 def my_appointments(request):
     """
     Get current user's appointments.
-    
-    GET /appointments/api/my-appointments/
     """
     user = request.user
     
@@ -145,6 +166,9 @@ def my_appointments(request):
         appointments = Appointment.objects.filter(
             stylist=user.stylist_profile
         ).order_by('-appointment_date', '-appointment_time')
+    elif user.user_type == 'salon_manager':
+        # Return empty for generic call, use dedicated salon list endpoint
+        return Response([]) 
     else:
         return Response({'error': 'نوع کاربر معتبر نیست'}, status=status.HTTP_403_FORBIDDEN)
     
@@ -155,6 +179,59 @@ def my_appointments(request):
     })
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsSalonManager])
+def get_salon_appointments(request, salon_id):
+    """
+    Get appointments for a specific salon (Manager only).
+    
+    GET /appointments/api/manage/list/<salon_id>/
+    """
+    try:
+        # Verify manager owns the salon
+        salon = request.user.manager_profile.salons.get(id=salon_id)
+        
+        appointments = Appointment.objects.filter(
+            stylist__salon=salon
+        ).order_by('-appointment_date', '-appointment_time')
+        
+        serializer = AppointmentSerializer(appointments, many=True)
+        return Response({
+            'count': appointments.count(),
+            'appointments': serializer.data
+        })
+    except Exception as e:
+        return Response({'error': 'Saloon not found or access denied'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsSalonManager])
+def approve_appointment(request, appointment_id):
+    """
+    Approve an appointment.
+    
+    POST /appointments/api/approve/<id>/
+    """
+    try:
+        appointment = Appointment.objects.select_related('stylist__salon__manager__user').get(id=appointment_id)
+    except Appointment.DoesNotExist:
+        return Response({'error': 'نوبت یافت نشد'}, status=status.HTTP_404_NOT_FOUND)
+        
+    # Check permission
+    if appointment.stylist.salon.manager.user != request.user:
+        return Response({'error': 'دسترسی غیرمجاز'}, status=status.HTTP_403_FORBIDDEN)
+        
+    if appointment.status != 'pending':
+        return Response({'error': 'فقط نوبت‌های در انتظار را می‌توان تأیید کرد'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    appointment.status = 'confirmed'
+    appointment.save(update_fields=['status'])
+    
+    send_appointment_confirmed_notification(appointment)
+    
+    return Response({'message': 'نوبت تایید شد'})
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def cancel_appointment(request, appointment_id):
@@ -162,90 +239,37 @@ def cancel_appointment(request, appointment_id):
     Cancel an appointment.
     
     POST /appointments/api/cancel/<id>/
+    Body: { "reason": "some reason" } (Mandatory for managers)
     """
     try:
-        appointment = Appointment.objects.get(id=appointment_id)
+        appointment = Appointment.objects.select_related('stylist__salon__manager__user').get(id=appointment_id)
     except Appointment.DoesNotExist:
         return Response({'error': 'نوبت یافت نشد'}, status=status.HTTP_404_NOT_FOUND)
     
-    # Check permissions: customer or salon manager can cancel
     user = request.user
-    allowed = False
+    is_customer = user.user_type == 'customer' and appointment.customer.user == user
+    is_manager = user.user_type == 'salon_manager' and appointment.stylist.salon.manager.user == user
     
-    if user.user_type == 'customer' and appointment.customer.user == user:
-        allowed = True
-    elif user.user_type == 'salon_manager':
-        if appointment.stylist.salon.manager.user == user:
-            allowed = True
-    
-    if not allowed:
+    if not (is_customer or is_manager):
         return Response({'error': 'دسترسی غیرمجاز'}, status=status.HTTP_403_FORBIDDEN)
     
-    # Cancel appointment
+    reason = request.data.get('reason', '')
+    
+    if is_manager and not reason.strip():
+        return Response({'error': 'دلیل لغو الزامی است'}, status=status.HTTP_400_BAD_REQUEST)
+    
     from django.utils import timezone
     appointment.status = 'cancelled'
     appointment.cancelled_at = timezone.now()
     appointment.cancelled_by = user
+    appointment.cancellation_reason = reason
     appointment.save()
+    
+    # Notify customer if manager cancelled
+    if is_manager:
+        send_appointment_cancelled_notification(appointment, reason)
     
     return Response({
         'message': 'نوبت لغو شد',
         'appointment_id': appointment.id
     })
-
-# ============================================================================
-# Template Views
-# ============================================================================
-
-@permission_classes([IsAuthenticated])
-def booking_view(request):
-    """
-    Render booking page.
-    """
-    context = {}
-    stylist_id = request.GET.get('stylist_id')
-    if stylist_id:
-        try:
-            stylist = StylistProfile.objects.get(id=stylist_id)
-            context['preselected_stylist'] = stylist
-            # Also fetch services for this stylist (or shared salon services)
-            # Services are linked to Salon, and optionally Stylist.
-            # If service.stylist is None, it's for all. If matches stylist, it's for them.
-            services = stylist.salon.services.filter(
-                Q(stylist=None) | Q(stylist=stylist)
-            )
-            context['stylist_services'] = services
-        except StylistProfile.DoesNotExist:
-            pass
-            
-    return render(request, 'appointments/booking.html', context)
-
-@permission_classes([IsAuthenticated])
-def appointment_list_view(request):
-    """
-    Render user's appointment list.
-    """
-    user = request.user
-    if user.user_type == 'customer':
-        try:
-            appointments = Appointment.objects.filter(customer=user.customer_profile).order_by('-appointment_date')
-        except:
-            appointments = []
-    elif user.user_type == 'salon_manager':
-        try:
-            salon = user.manager_profile.salons.first()
-            if salon:
-                appointments = Appointment.objects.filter(stylist__salon=salon).order_by('-appointment_date')
-            else:
-                appointments = []
-        except:
-            appointments = []
-    elif user.user_type == 'stylist':
-        try:
-            appointments = Appointment.objects.filter(stylist=user.stylist_profile).order_by('-appointment_date')
-        except:
-            appointments = []
-    else:
-        appointments = []
-        
-    return render(request, 'appointments/appointment_list.html', {'appointments': appointments})

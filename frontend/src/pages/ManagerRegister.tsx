@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
+import { useAuth } from '../hooks/useAuth';
 
 // Validation schema
 const managerRegisterSchema = z.object({
@@ -27,6 +28,7 @@ type ManagerRegisterFormData = z.infer<typeof managerRegisterSchema>;
 
 const ManagerRegister: React.FC = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -37,6 +39,21 @@ const ManagerRegister: React.FC = () => {
     } = useForm<ManagerRegisterFormData>({
         resolver: zodResolver(managerRegisterSchema),
     });
+
+    // Redirect if already logged in
+    useEffect(() => {
+        if (user) {
+            if (user.user_type === 'salon_manager') {
+                navigate('/manager/dashboard');
+            } else if (user.user_type === 'stylist') {
+                navigate('/stylist/dashboard');
+            } else if (user.user_type === 'site_admin') {
+                navigate('/admin');
+            } else {
+                navigate('/dashboard');
+            }
+        }
+    }, [user, navigate]);
 
     const onSubmit = async (data: ManagerRegisterFormData) => {
         setIsSubmitting(true);

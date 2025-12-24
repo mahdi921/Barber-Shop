@@ -203,13 +203,6 @@ CELERY_TIMEZONE = TIME_ZONE
 SMS_API_KEY = config('SMS_API_KEY', default='')
 SMS_PROVIDER = 'stub'  # Change to 'kavenegar', 'ghasedak', etc.
 
-# Make.com Webhook Configuration
-MAKE_WEBHOOK_URL = config('MAKE_WEBHOOK_URL', default='')
-MAKE_WEBHOOK_SECRET = config('MAKE_WEBHOOK_SECRET', default='')
-MAKE_SIGNATURE_HEADER = 'X-Make-Signature'
-MAKE_WEBHOOK_MAX_RETRIES = 5
-MAKE_WEBHOOK_TIMEOUT = 10  # seconds
-
 
 # Logging Configuration
 LOGGING = {
@@ -267,3 +260,10 @@ CHAT_RATE_LIMIT = config('CHAT_RATE_LIMIT', default=10, cast=int)  # messages pe
 CHAT_AI_CONFIDENCE_THRESHOLD = config('CHAT_AI_CONFIDENCE_THRESHOLD', default=0.6, cast=float)
 CHAT_MAX_MESSAGE_LENGTH = 1000
 CHAT_SESSION_TIMEOUT = 3600  # 1 hour in seconds
+
+# ============================================================================
+# Telegram Bot Configuration
+# ============================================================================
+
+TELEGRAM_BOT_TOKEN = config('TELEGRAM_BOT_TOKEN', default='')
+TELEGRAM_BOT_USERNAME = config('TELEGRAM_BOT_USERNAME', default='')

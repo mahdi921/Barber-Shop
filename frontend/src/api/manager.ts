@@ -42,6 +42,7 @@ export interface SalonDetails {
     services: Service[];
     working_hours: WorkingHours[];
     stylists: Stylist[];
+    auto_approve_appointments: boolean;
 }
 
 export const managerApi = {
@@ -141,5 +142,21 @@ export const managerApi = {
 
     deleteWorkingHours: async (id: number) => {
         await client.delete(`/salons/api/manager/working-hours/${id}/`);
+    },
+
+    // Appointment Management
+    getSalonAppointments: async (salonId: number) => {
+        const response = await client.get<{ count: number; appointments: any[] }>(`/appointments/api/manage/list/${salonId}/`);
+        return response.data;
+    },
+
+    approveAppointment: async (appointmentId: number) => {
+        const response = await client.post(`/appointments/api/approve/${appointmentId}/`);
+        return response.data;
+    },
+
+    cancelAppointment: async (appointmentId: number, reason: string) => {
+        const response = await client.post(`/appointments/api/cancel/${appointmentId}/`, { reason });
+        return response.data;
     },
 };

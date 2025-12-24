@@ -147,6 +147,25 @@ class CustomerProfile(TimeStampedModel):
         verbose_name="شناسه چت تلگرام",
         help_text="Chat ID برای ارسال اعلان‌های تلگرام"
     )
+    telegram_username = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="نام کاربری تلگرام"
+    )
+    telegram_first_name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="نام در تلگرام"
+    )
+    telegram_user_id = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name="شناسه کاربر تلگرام",
+        help_text="User ID ثابت کاربر در تلگرام"
+    )
     
     class Meta:
         verbose_name = "پروفایل مشتری"
@@ -209,6 +228,35 @@ class SalonManagerProfile(TimeStampedModel):
         verbose_name="تأیید کننده"
     )
     
+    # Telegram integration
+    telegram_chat_id = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        unique=True,
+        verbose_name="شناسه چت تلگرام",
+        help_text="Chat ID برای ارسال اعلان‌های تلگرام"
+    )
+    telegram_username = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="نام کاربری تلگرام"
+    )
+    telegram_first_name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="نام در تلگرام"
+    )
+    telegram_user_id = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name="شناسه کاربر تلگرام",
+        help_text="User ID ثابت کاربر در تلگرام"
+    )
+    
     class Meta:
         verbose_name = "پروفایل مدیر سالن"
         verbose_name_plural = "پروفایل‌های مدیر سالن"
@@ -264,6 +312,35 @@ class StylistProfile(TimeStampedModel):
         help_text="باید در اولین ورود پروفایل را تکمیل کند"
     )
     profile_completed_at = models.DateTimeField(null=True, blank=True, verbose_name="تاریخ تکمیل پروفایل")
+    
+    # Telegram integration
+    telegram_chat_id = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        unique=True,
+        verbose_name="شناسه چت تلگرام",
+        help_text="Chat ID برای ارسال اعلان‌های تلگرام"
+    )
+    telegram_username = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="نام کاربری تلگرام"
+    )
+    telegram_first_name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="نام در تلگرام"
+    )
+    telegram_user_id = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name="شناسه کاربر تلگرام",
+        help_text="User ID ثابت کاربر در تلگرام"
+    )
     
     class Meta:
         verbose_name = "پروفایل آرایشگر"

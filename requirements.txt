@@ -15,6 +15,7 @@ django-filter
 requests
 responses
 python-telegram-bot
+pytz
 
 
 # WebSocket & Chatbot

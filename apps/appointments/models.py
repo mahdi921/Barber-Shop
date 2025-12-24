@@ -68,18 +68,8 @@ class Appointment(TimeStampedModel):
         related_name='cancelled_appointments',
         verbose_name="لغو شده توسط"
     )
+    cancellation_reason = models.TextField(blank=True, verbose_name="دلیل لغو")
     
-    # Webhook delivery tracking
-    webhook_created_sent = models.BooleanField(
-        default=False,
-        verbose_name="وب‌هوک ایجاد ارسال شده",
-        help_text="آیا وب‌هوک برای ایجاد نوبت ارسال شده است"
-    )
-    webhook_confirmed_sent = models.BooleanField(
-        default=False,
-        verbose_name="وب‌هوک تأیید ارسال شده",
-        help_text="آیا وب‌هوک برای تأیید نوبت ارسال شده است"
-    )
     
     class Meta:
         verbose_name = "نوبت"
@@ -124,94 +114,5 @@ class Appointment(TimeStampedModel):
         return self.status == 'completed'
 
 
-class WebhookDelivery(TimeStampedModel):
-    """
-    Track webhook delivery attempts to Make.com.
-    
-    Each appointment can have multiple webhook deliveries (creation, confirmation).
-    Each delivery tracks retry attempts, responses, and status.
-    """
-    STATUS_CHOICES = [
-        ('queued', 'در صف'),  # Queued for delivery
-        ('sending', 'در حال ارسال'),  # Currently being sent
-        ('sent', 'ارسال شده'),  # Successfully delivered
-        ('failed', 'ناموفق'),  # Permanently failed
-        ('pending', 'معلق'),  # No webhook URL configured
-    ]
-    
-    EVENT_TYPE_CHOICES = [
-        ('created', 'ایجاد شده'),  # Appointment created (pending status)
-        ('confirmed', 'تأیید شده'),  # Appointment confirmed
-    ]
-    
-    appointment = models.ForeignKey(
-        Appointment,
-        on_delete=models.CASCADE,
-        related_name='webhook_deliveries',
-        verbose_name="نوبت"
-    )
-    
-    event_type = models.CharField(
-        max_length=20,
-        choices=EVENT_TYPE_CHOICES,
-        verbose_name="نوع رویداد",
-        help_text="نوع رویداد که این وب‌هوک برای آن ارسال شده"
-    )
-    
-    payload = models.JSONField(verbose_name="محتوای ارسالی")
-    
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='queued',
-        verbose_name="وضعیت"
-    )
-    
-    idempotency_key = models.CharField(
-        max_length=255,
-        unique=True,
-        db_index=True,
-        verbose_name="کلید یکتایی",
-        help_text="کلید یکتا برای جلوگیری از ارسال مجدد (appointment:id:event)"
-    )
-    
-    attempts_count = models.IntegerField(
-        default=0,
-        verbose_name="تعداد تلاش‌ها"
-    )
-    
-    last_attempt_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        verbose_name="آخرین تلاش"
-    )
-    
-    response_code = models.IntegerField(
-        null=True,
-        blank=True,
-        verbose_name="کد پاسخ HTTP"
-    )
-    
-    response_body = models.TextField(
-        blank=True,
-        verbose_name="پاسخ سرور",
-        help_text="پاسخ دریافتی از Make.com (حداکثر 4000 کاراکتر)"
-    )
-    
-    error_message = models.TextField(
-        blank=True,
-        verbose_name="پیام خطا"
-    )
-    
-    class Meta:
-        verbose_name = "تحویل وب‌هوک"
-        verbose_name_plural = "تحویل‌های وب‌هوک"
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['status', 'created_at']),
-            models.Index(fields=['appointment', 'event_type']),
-        ]
-    
-    def __str__(self):
-        return f"{self.appointment} - {self.get_event_type_display()} ({self.get_status_display()})"
+
 

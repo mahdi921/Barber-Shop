@@ -31,16 +31,30 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     const [viewMode, setViewMode] = useState<ViewMode>('faq-list');
     const [faqs, setFaqs] = useState<FAQ[]>([]);
     const [selectedFAQ, setSelectedFAQ] = useState<FAQ | null>(null);
+    const [faqsLoading, setFaqsLoading] = useState(true);
+    const [faqsError, setFaqsError] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Load FAQs on mount
     useEffect(() => {
-        chatApi.getInitialFAQs()
-            .then((data) => setFaqs(Array.isArray(data) ? data : []))
-            .catch((error) => {
+        const loadFAQs = async () => {
+            try {
+                setFaqsLoading(true);
+                setFaqsError(null);
+                console.log('Loading FAQs...');
+                const data = await chatApi.getInitialFAQs();
+                console.log('Loaded FAQs:', data);
+                setFaqs(Array.isArray(data) ? data : []);
+            } catch (error) {
                 console.error('Failed to load FAQs:', error);
+                setFaqsError('خطا در بارگذاری سوالات متداول');
                 setFaqs([]); // Ensure faqs is always an array
-            });
+            } finally {
+                setFaqsLoading(false);
+            }
+        };
+
+        loadFAQs();
     }, []);
 
     // Auto-switch to chat mode when messages arrive or status changes
@@ -134,6 +148,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             {viewMode === 'faq-list' && (
                 <FAQList
                     faqs={faqs}
+                    loading={faqsLoading}
+                    error={faqsError}
                     onSelectFAQ={handleSelectFAQ}
                     onEscalate={handleEscalate}
                 />

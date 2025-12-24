@@ -10,6 +10,7 @@ import CustomerDashboard from './pages/dashboard/CustomerDashboard';
 import StylistDashboard from './pages/dashboard/StylistDashboard';
 import ManagerDashboard from './pages/dashboard/ManagerDashboard';
 import SalonDetailManagement from './pages/dashboard/SalonDetailManagement';
+import Layout from './components/ui/Layout';
 import { useAuth } from './hooks/useAuth';
 
 // Protected Route Wrapper
@@ -34,41 +35,52 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
 const AppRoutes = () => {
     return (
         <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register/customer" element={<CustomerRegister />} />
-            <Route path="/register/manager" element={<ManagerRegister />} />
-            <Route path="/" element={<Home />} />
-            <Route path="/salon/:id" element={<SalonDetail />} />
+            {/* Public routes with layout */}
+            <Route path="/login" element={<Layout><Login /></Layout>} />
+            <Route path="/register/customer" element={<Layout><CustomerRegister /></Layout>} />
+            <Route path="/register/manager" element={<Layout><ManagerRegister /></Layout>} />
+            <Route path="/" element={<Layout><Home /></Layout>} />
+            <Route path="/salon/:id" element={<Layout><SalonDetail /></Layout>} />
 
-            {/* Dasboard placeholders */}
+            {/* Protected routes with layout */}
             <Route path="/dashboard" element={
-                <ProtectedRoute allowedRoles={['customer']}>
-                    <CustomerDashboard />
-                </ProtectedRoute>
+                <Layout>
+                    <ProtectedRoute allowedRoles={['customer']}>
+                        <CustomerDashboard />
+                    </ProtectedRoute>
+                </Layout>
             } />
 
             <Route path="/stylist-dashboard" element={
-                <ProtectedRoute allowedRoles={['stylist']}>
-                    <StylistDashboard />
-                </ProtectedRoute>
+                <Layout>
+                    <ProtectedRoute allowedRoles={['stylist']}>
+                        <StylistDashboard />
+                    </ProtectedRoute>
+                </Layout>
             } />
 
             <Route path="/manager/dashboard" element={
-                <ProtectedRoute allowedRoles={['salon_manager']}>
-                    <ManagerDashboard />
-                </ProtectedRoute>
+                <Layout>
+                    <ProtectedRoute allowedRoles={['salon_manager']}>
+                        <ManagerDashboard />
+                    </ProtectedRoute>
+                </Layout>
             } />
 
             <Route path="/manager/dashboard/salons/:salonId" element={
-                <ProtectedRoute allowedRoles={['salon_manager']}>
-                    <SalonDetailManagement />
-                </ProtectedRoute>
+                <Layout>
+                    <ProtectedRoute allowedRoles={['salon_manager']}>
+                        <SalonDetailManagement />
+                    </ProtectedRoute>
+                </Layout>
             } />
 
             <Route path="/admin" element={
-                <ProtectedRoute allowedRoles={['site_admin']}>
-                    <AdminDashboard />
-                </ProtectedRoute>
+                <Layout>
+                    <ProtectedRoute allowedRoles={['site_admin']}>
+                        <AdminDashboard />
+                    </ProtectedRoute>
+                </Layout>
             } />
 
             {/* Default redirect */}

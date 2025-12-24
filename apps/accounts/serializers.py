@@ -16,7 +16,7 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'first_name', 'last_name', 'full_name',
             'selfie_photo', 'gender', 'date_of_birth',
-            'jalali_date_of_birth', 'created_at', 'updated_at'
+            'jalali_date_of_birth', 'telegram_chat_id', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
 
@@ -28,7 +28,7 @@ class SalonManagerProfileSerializer(serializers.ModelSerializer):
         model = SalonManagerProfile
         fields = [
             'id', 'salon_name', 'salon_photo', 'salon_address',
-            'salon_gender_type', 'is_approved', 'approved_at',
+            'salon_gender_type', 'telegram_chat_id', 'is_approved', 'approved_at',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['is_approved', 'approved_at', 'created_at', 'updated_at']
@@ -44,7 +44,7 @@ class StylistProfileSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'salon', 'first_name', 'last_name', 'full_name',
             'gender', 'date_of_birth', 'jalali_date_of_birth',
-            'is_temporary', 'profile_completed_at',
+            'telegram_chat_id', 'is_temporary', 'profile_completed_at',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['is_temporary', 'profile_completed_at', 'created_at', 'updated_at']
@@ -65,15 +65,21 @@ class CustomUserSerializer(serializers.ModelSerializer):
     manager_profile = SalonManagerProfileSerializer(read_only=True)
     stylist_profile = StylistProfileSerializer(read_only=True)
     admin_profile = SiteAdminProfileSerializer(read_only=True)
+    telegram_bot_username = serializers.SerializerMethodField()
     
     class Meta:
         model = CustomUser
         fields = [
             'id', 'phone_number', 'user_type', 'is_phone_verified',
             'is_active', 'is_staff', 'date_joined',
-            'customer_profile', 'manager_profile', 'stylist_profile', 'admin_profile'
+            'customer_profile', 'manager_profile', 'stylist_profile', 'admin_profile',
+            'telegram_bot_username'
         ]
         read_only_fields = ['id', 'date_joined', 'is_staff']
+        
+    def get_telegram_bot_username(self, obj):
+        from django.conf import settings
+        return settings.TELEGRAM_BOT_USERNAME
 
 
 class CustomerRegistrationSerializer(serializers.Serializer):

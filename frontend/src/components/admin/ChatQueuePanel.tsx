@@ -68,7 +68,8 @@ const ChatQueuePanel: React.FC<ChatQueuePanelProps> = ({ onJoinChat }) => {
         );
     }
 
-    const queueList = queue || [];
+    // Ensure queueList is always an array, even if API returns object/null
+    const queueList = Array.isArray(queue) ? queue : [];
 
     return (
         <div className="bg-white rounded-lg shadow">

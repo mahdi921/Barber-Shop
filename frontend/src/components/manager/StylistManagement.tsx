@@ -22,6 +22,12 @@ const StylistManagement: React.FC<StylistManagementProps> = ({ salonId }) => {
             queryClient.invalidateQueries({ queryKey: ['manager', 'stylists', salonId] });
             setShowAddModal(false);
             setNewStylist({ full_name: '', phone_number: '', password: '' });
+            alert('✅ آرایشگر با موفقیت اضافه شد!');
+        },
+        onError: (error: any) => {
+            console.error('Failed to create stylist:', error);
+            const errorMessage = error?.response?.data?.error || 'خطا در افزودن آرایشگر. لطفاً دوباره تلاش کنید.';
+            alert(`❌ ${errorMessage}`);
         },
     });
 

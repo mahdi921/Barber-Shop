@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
@@ -16,7 +16,8 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const Login: React.FC = () => {
-    const { login, isLoggingIn, isLoginError } = useAuth();
+    const { login, isLoggingIn, isLoginError, user } = useAuth();
+    const navigate = useNavigate();
 
     const {
         register,
@@ -25,6 +26,25 @@ const Login: React.FC = () => {
     } = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema),
     });
+
+    // Redirect if already logged in
+    useEffect(() => {
+        if (user) {
+            if (user.user_type === 'salon_manager') {
+                navigate('/manager/dashboard');
+            } else if (user.user_type === 'stylist') {
+                if (user.is_temporary) {
+                    navigate('/complete-profile');
+                } else {
+                    navigate('/stylist/dashboard');
+                }
+            } else if (user.user_type === 'site_admin') {
+                navigate('/admin');
+            } else {
+                navigate('/dashboard');
+            }
+        }
+    }, [user, navigate]);
 
     const onSubmit = (data: LoginFormData) => {
         login(data);
@@ -114,4 +134,3 @@ const Login: React.FC = () => {
 };
 
 export default Login;
-

@@ -22,6 +22,9 @@ urlpatterns = [
     path('ratings/', include('apps.ratings.urls')),
     path('chat/', include('apps.chat.urls')),  # Chat APIs
     
+    # Config API
+    path('api/config/', include('config.api_urls')),
+    
     # API URLs (if using DRF browsable API)
     path('api-auth/', include('rest_framework.urls')),
 ]

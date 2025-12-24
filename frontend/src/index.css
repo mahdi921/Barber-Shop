@@ -1,21 +1,176 @@
 @import "tailwindcss";
 @import "@fontsource/vazirmatn";
 
+/* ==================== Design System Tokens ==================== */
 :root {
+  /* Typography */
   --font-sans: 'Vazirmatn', sans-serif;
+  
+  /* Primary Color Palette - Indigo/Purple Gradient */
+  --color-primary-50: #EEF2FF;
+  --color-primary-100: #E0E7FF;
+  --color-primary-200: #C7D2FE;
+ --color-primary-300: #A5B4FC;
+  --color-primary-400: #818CF8;
+  --color-primary-500: #6366F1;
+  --color-primary-600: #4F46E5;
+  --color-primary-700: #4338CA;
+  --color-primary-800: #3730A3;
+  --color-primary-900: #312E81;
+  
+  /* Secondary Color - Blue */
+  --color-secondary-500: #3B82F6;
+  --color-secondary-600: #2563EB;
+  --color-secondary-700: #1D4ED8;
+  
+  /* Accent Color - Amber */
+  --color-accent-500: #F59E0B;
+  --color-accent-600: #D97706;
+  
+  /* Success Color */
+  --color-success-500: #10B981;
+  --color-success-600: #059669;
+  
+  /* Neutrals */
+  --color-gray-50: #F9FAFB;
+  --color-gray-100: #F3F4F6;
+  --color-gray-200: #E5E7EB;
+  --color-gray-300: #D1D5DB;
+  --color-gray-600: #4B5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1F2937;
+  --color-gray-900: #111827;
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  --gradient-secondary: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%);
+  --gradient-warm: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);
+  --gradient-hero: linear-gradient(135deg, #312E81 0%, #1E1B4B 100%);
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  --shadow-colored: 0 10px 30px -5px rgba(79, 70, 229, 0.3);
+  
+  /* Spacing Scale */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  
   font-family: var(--font-sans);
 }
 
+/* ==================== Global Styles ==================== */
 body {
   direction: rtl;
   text-align: right;
-  background-color: #f3f4f6;
-  /* gray-100 */
-  color: #1f2937;
-  /* gray-800 */
+  background-color: var(--color-gray-50);
+  color: var(--color-gray-900);
+  line-height: 1.6;
 }
 
-/* Persian DatePicker Styles */
+/* ==================== Animations ==================== */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(79, 70, 229, 0.6);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in var(--transition-base) ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right var(--transition-slow) ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left var(--transition-slow) ease-out;
+}
+
+/* ==================== Utility Classes ==================== */
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card-hover {
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-colored);
+}
+
+/* ==================== Persian DatePicker Styles ==================== */
 .rmdp-container {
   direction: rtl !important;
 }
@@ -33,25 +188,25 @@ body {
 }
 
 .rmdp-week-day {
-  color: #6366f1 !important;
+  color: var(--color-primary-600) !important;
   font-weight: 600;
 }
 
 .rmdp-day.rmdp-selected span {
-  background-color: #4f46e5 !important;
+  background-color: var(--color-primary-600) !important;
   color: white !important;
 }
 
 .rmdp-day.rmdp-today span {
-  background-color: #e0e7ff !important;
-  color: #4f46e5 !important;
+  background-color: var(--color-primary-100) !important;
+  color: var(--color-primary-700) !important;
 }
 
 .rmdp-day:hover span {
-  background-color: #e0e7ff !important;
+  background-color: var(--color-primary-50) !important;
 }
 
 .rmdp-arrow-container:hover {
-  background-color: #e0e7ff !important;
-  box-shadow: 0 0 3px #8b5cf6;
+  background-color: var(--color-primary-100) !important;
+  box-shadow: 0 0 3px var(--color-primary-400);
 }

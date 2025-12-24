@@ -60,6 +60,13 @@ class Salon(TimeStampedModel):
     )
     total_ratings = models.IntegerField(default=0, verbose_name="تعداد امتیازها")
     
+    # Settings
+    auto_approve_appointments = models.BooleanField(
+        default=False,
+        verbose_name="تأیید خودکار نوبت‌ها",
+        help_text="در صورت فعال بودن، نوبت‌ها بلافاصله تأیید می‌شوند"
+    )
+    
     objects = SalonQuerySet.as_manager()
     
     class Meta:

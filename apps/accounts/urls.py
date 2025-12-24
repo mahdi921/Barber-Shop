@@ -35,4 +35,9 @@ urlpatterns = [
     path('api/admin/users/', views.api_admin_users, name='api_admin_users'),
     path('api/admin/users/<int:user_id>/', views.api_admin_user_detail, name='api_admin_user_detail'),
     path('api/me/', views.api_current_user, name='api_current_user'),
+    
+    # Profile update endpoints
+    path('api/profile/customer/', __import__('apps.accounts.profile_api_views', fromlist=['update_customer_profile']).update_customer_profile, name='update_customer_profile'),
+    path('api/profile/stylist/', __import__('apps.accounts.profile_api_views', fromlist=['update_stylist_profile']).update_stylist_profile, name='update_stylist_profile'),
+    path('api/profile/manager/', __import__('apps.accounts.profile_api_views', fromlist=['update_manager_profile']).update_manager_profile, name='update_manager_profile'),
 ]

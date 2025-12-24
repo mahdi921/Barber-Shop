@@ -37,8 +37,15 @@ export const chatApi = {
     // FAQ endpoints
     // Get initial FAQs for display on chat open
     getInitialFAQs: async (): Promise<FAQ[]> => {
-        const response = await client.get<FAQ[]>('/chat/api/faqs/?limit=5');
-        return response.data;
+        try {
+            // Remove limit to get all active FAQs
+            const response = await client.get<FAQ[]>('/chat/api/faqs/');
+            console.log('FAQ API Response:', response.data);
+            return Array.isArray(response.data) ? response.data : [];
+        } catch (error) {
+            console.error('Error fetching FAQs:', error);
+            return []; // Return empty array on error
+        }
     },
 
     getFAQs: async (category?: string) => {

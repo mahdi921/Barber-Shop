@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,6 +8,7 @@ import persian from 'react-date-object/calendars/persian';
 import persian_fa from 'react-date-object/locales/persian_fa';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
+import { useAuth } from '../hooks/useAuth';
 
 // Validation schema
 const customerRegisterSchema = z.object({
@@ -30,6 +31,7 @@ type CustomerRegisterFormData = z.infer<typeof customerRegisterSchema>;
 
 const CustomerRegister: React.FC = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showTelegramModal, setShowTelegramModal] = useState(false);
@@ -43,6 +45,21 @@ const CustomerRegister: React.FC = () => {
     } = useForm<CustomerRegisterFormData>({
         resolver: zodResolver(customerRegisterSchema),
     });
+
+    // Redirect if already logged in
+    useEffect(() => {
+        if (user) {
+            if (user.user_type === 'salon_manager') {
+                navigate('/manager/dashboard');
+            } else if (user.user_type === 'stylist') {
+                navigate('/stylist/dashboard');
+            } else if (user.user_type === 'site_admin') {
+                navigate('/admin');
+            } else {
+                navigate('/dashboard');
+            }
+        }
+    }, [user, navigate]);
 
     const onSubmit = async (data: CustomerRegisterFormData) => {
         setIsSubmitting(true);

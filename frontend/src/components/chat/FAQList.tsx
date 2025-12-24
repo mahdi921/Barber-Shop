@@ -10,11 +10,13 @@ export interface FAQ {
 
 interface FAQListProps {
     faqs: FAQ[];
+    loading?: boolean;
+    error?: string | null;
     onSelectFAQ: (faq: FAQ) => void;
     onEscalate: () => void;
 }
 
-const FAQList: React.FC<FAQListProps> = ({ faqs, onSelectFAQ, onEscalate }) => {
+const FAQList: React.FC<FAQListProps> = ({ faqs, loading, error, onSelectFAQ, onEscalate }) => {
     return (
         <div className="flex flex-col h-full">
             {/* Header */}
@@ -25,7 +27,17 @@ const FAQList: React.FC<FAQListProps> = ({ faqs, onSelectFAQ, onEscalate }) => {
 
             {/* FAQ List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                {Array.isArray(faqs) && faqs.length > 0 ? (
+                {loading ? (
+                    <div className="text-center py-12">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <p className="text-gray-600 mt-3">در حال بارگذاری سوالات...</p>
+                    </div>
+                ) : error ? (
+                    <div className="text-center py-8">
+                        <p className="text-red-600 mb-2">❌ {error}</p>
+                        <p className="text-sm text-gray-500">لطفاً دوباره تلاش کنید یا با پشتیبان تماس بگیرید</p>
+                    </div>
+                ) : Array.isArray(faqs) && faqs.length > 0 ? (
                     faqs.map((faq) => (
                         <button
                             key={faq.id}
@@ -40,7 +52,8 @@ const FAQList: React.FC<FAQListProps> = ({ faqs, onSelectFAQ, onEscalate }) => {
                     ))
                 ) : (
                     <div className="text-center py-8 text-gray-500">
-                        <p>در حال بارگذاری سوالات...</p>
+                        <p className="mb-2">⚠️ هیچ سوال متداولی یافت نشد</p>
+                        <p className="text-sm">لطفاً با پشتیبان در ارتباط باشید</p>
                     </div>
                 )}
             </div>
