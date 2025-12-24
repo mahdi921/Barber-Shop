@@ -13,7 +13,5 @@ urlpatterns = [
     path('api/approve/<int:appointment_id>/', views.approve_appointment, name='api_approve'),
     path('api/manage/list/<int:salon_id>/', views.get_salon_appointments, name='api_manager_list'),
     
-    # Template URLs
-    path('book/', views.booking_view, name='booking_page'),
-    path('list/', views.appointment_list_view, name='appointment_list'),
+
 ]
